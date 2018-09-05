@@ -6,7 +6,7 @@ namespace Light.Undefine.Tests
     public static class AndExpressionTests
     {
         [Fact]
-        public static void DerivesFromCompositeExpression() => typeof(AndExpression).Should().BeDerivedFrom<CompositeExpression>();
+        public static void DerivesFromBinaryExpression() => typeof(AndExpression).Should().BeDerivedFrom<BinaryExpression>();
 
         [Theory]
         [MemberData(nameof(AllSymbolsDefinedData))]

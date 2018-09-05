@@ -3,7 +3,7 @@
 
 namespace Light.Undefine
 {
-    public sealed class AndExpression : CompositeExpression
+    public sealed class AndExpression : BinaryExpression
     {
         public AndExpression(PreprocessorExpression left, PreprocessorExpression right) : base(left, Operators.And, right) { }
 

@@ -6,7 +6,7 @@ namespace Light.Undefine.Tests
     public static class OrExpressionTests
     {
         [Fact]
-        public static void DerivesFromCompositeExpression() => typeof(OrExpression).Should().BeDerivedFrom<CompositeExpression>();
+        public static void DerivesFromBinaryExpression() => typeof(OrExpression).Should().BeDerivedFrom<BinaryExpression>();
 
         [Theory]
         [MemberData(nameof(AtLeastOneSymbolDefinedData))]

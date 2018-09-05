@@ -3,7 +3,7 @@
 
 namespace Light.Undefine
 {
-    public sealed class OrExpression : CompositeExpression
+    public sealed class OrExpression : BinaryExpression
     {
         public OrExpression(PreprocessorExpression left, PreprocessorExpression right) : base(left, Operators.Or, right) { }
 

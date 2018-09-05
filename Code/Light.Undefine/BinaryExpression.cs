@@ -2,9 +2,9 @@
 
 namespace Light.Undefine
 {
-    public abstract class CompositeExpression : PreprocessorExpression
+    public abstract class BinaryExpression : PreprocessorExpression
     {
-        protected CompositeExpression(PreprocessorExpression left, string @operator, PreprocessorExpression right)
+        protected BinaryExpression(PreprocessorExpression left, string @operator, PreprocessorExpression right)
         {
             Left = left.MustNotBeNull(nameof(left));
             Operator = @operator.MustNotBeNullOrWhiteSpace(nameof(@operator));
