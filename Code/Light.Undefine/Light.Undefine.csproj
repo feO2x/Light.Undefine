@@ -13,4 +13,8 @@
     <PackageLicenseUrl>https://raw.githubusercontent.com/feO2x/Light.Undefine/master/LICENSE</PackageLicenseUrl>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Light.GuardClauses" Version="5.0.1" />
+  </ItemGroup>
+
 </Project>
