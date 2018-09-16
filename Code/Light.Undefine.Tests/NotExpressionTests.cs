@@ -11,7 +11,7 @@ namespace Light.Undefine.Tests
         [Theory]
         [MemberData(nameof(NotDefinedData))]
         public static void NotDefined(string[] definedSymbols) =>
-            new NotExpression(new Symbol("NETSTANDARD1_0")).Evaluate(definedSymbols).Should().BeTrue();
+            new NotExpression(new SymbolExpression("NETSTANDARD1_0")).Evaluate(definedSymbols).Should().BeTrue();
 
         public static readonly TheoryData<string[]> NotDefinedData =
             new TheoryData<string[]>
@@ -23,7 +23,7 @@ namespace Light.Undefine.Tests
         [Theory]
         [MemberData(nameof(DefinedData))]
         public static void Defined(string[] definedSymbols) => 
-            new NotExpression(new Symbol("NET45")).Evaluate(definedSymbols).Should().BeFalse();
+            new NotExpression(new SymbolExpression("NET45")).Evaluate(definedSymbols).Should().BeFalse();
 
         public static readonly TheoryData<string[]> DefinedData =
             new TheoryData<string[]>

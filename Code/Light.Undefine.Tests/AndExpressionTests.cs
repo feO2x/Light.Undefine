@@ -11,7 +11,7 @@ namespace Light.Undefine.Tests
         [Theory]
         [MemberData(nameof(AllSymbolsDefinedData))]
         public static void AllSymbolsDefined(string[] definedSymbols) =>
-            new AndExpression(new Symbol("DEBUG"), new Symbol("TRACE")).Evaluate(definedSymbols).Should().BeTrue();
+            new AndExpression(new SymbolExpression("DEBUG"), new SymbolExpression("TRACE")).Evaluate(definedSymbols).Should().BeTrue();
 
         public static readonly TheoryData<string[]> AllSymbolsDefinedData =
             new TheoryData<string[]>
@@ -23,7 +23,7 @@ namespace Light.Undefine.Tests
         [Theory]
         [MemberData(nameof(NotAllSymbolsDefinedData))]
         public static void NotAllSymbolsDefined(string[] definedSymbols) => 
-            new AndExpression(new Symbol("DEBUG"), new Symbol("TRACE")).Evaluate(definedSymbols).Should().BeFalse();
+            new AndExpression(new SymbolExpression("DEBUG"), new SymbolExpression("TRACE")).Evaluate(definedSymbols).Should().BeFalse();
 
         public static readonly TheoryData<string[]> NotAllSymbolsDefinedData =
             new TheoryData<string[]>

@@ -11,7 +11,7 @@ namespace Light.Undefine.Tests
         [Theory]
         [MemberData(nameof(AtLeastOneSymbolDefinedData))]
         public static void AtLeastOneSymbolDefined(string[] definedSymbols) =>
-            new OrExpression(new Symbol("RELEASE"), new Symbol("DEBUG")).Evaluate(definedSymbols).Should().BeTrue();
+            new OrExpression(new SymbolExpression("RELEASE"), new SymbolExpression("DEBUG")).Evaluate(definedSymbols).Should().BeTrue();
 
         public static readonly TheoryData<string[]> AtLeastOneSymbolDefinedData =
             new TheoryData<string[]>
@@ -24,7 +24,7 @@ namespace Light.Undefine.Tests
         [Theory]
         [MemberData(nameof(NoSymbolDefinedData))]
         public static void NoSymbolDefined(string[] definedSymbols) => 
-            new OrExpression(new Symbol("RELEASE"), new Symbol("STAGING")).Evaluate(definedSymbols);
+            new OrExpression(new SymbolExpression("RELEASE"), new SymbolExpression("STAGING")).Evaluate(definedSymbols);
 
         public static readonly TheoryData<string[]> NoSymbolDefinedData =
             new TheoryData<string[]>

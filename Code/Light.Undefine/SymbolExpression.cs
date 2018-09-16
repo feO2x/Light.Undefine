@@ -4,9 +4,9 @@ using Light.GuardClauses;
 
 namespace Light.Undefine
 {
-    public sealed class Symbol : PreprocessorExpression
+    public sealed class SymbolExpression : PreprocessorExpression
     {
-        public Symbol(string name) => 
+        public SymbolExpression(string name) => 
             Name = name.MustNotBeNullOrWhiteSpace(nameof(name));
 
         public string Name { get; }
