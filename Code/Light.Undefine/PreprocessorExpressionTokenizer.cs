@@ -62,7 +62,10 @@ namespace Light.Undefine
                 while (++_currentIndex < span.Length)
                 {
                     var currentCharacter = span[_currentIndex];
-                    if (char.IsWhiteSpace(currentCharacter) || currentCharacter == OrOperatorCharacter || currentCharacter == AndOperatorCharacter)
+                    if (char.IsWhiteSpace(currentCharacter) || 
+                        currentCharacter == OrOperatorCharacter || 
+                        currentCharacter == AndOperatorCharacter || 
+                        currentCharacter == CloseBracketCharacter)
                         break;
                     if (char.IsLetterOrDigit(currentCharacter) || currentCharacter == Underscore)
                         continue;
@@ -103,7 +106,8 @@ namespace Light.Undefine
                 {
                     if (_currentIndex < span.Length - 1)
                         ++_currentIndex;
-                    return false;
+                    else
+                        return false;
                 }
 
                 return true;
