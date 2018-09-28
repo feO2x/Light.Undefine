@@ -4,6 +4,5 @@
     {
         public const string And = "&&";
         public const string Or = "||";
-        public const char Not = '!';
     }
 }

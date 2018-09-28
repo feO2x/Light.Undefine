@@ -10,7 +10,7 @@ namespace Light.Undefine.Tests
         [Theory]
         [MemberData(nameof(ValidSymbols))]
         public static void ParseSymbol(string symbol) => 
-            PreprocessorExpressionParser.Parse(symbol.AsSpan()).MustBeSymbolExpression(symbol);
+            PreprocessorExpressionParser.Parse(symbol.AsMemory()).MustBeSymbolExpression(symbol);
 
         [Theory]
         [MemberData(nameof(ValidSymbols))]
@@ -18,7 +18,7 @@ namespace Light.Undefine.Tests
         {
             var expression = $"!{symbol}";
 
-            var actualExpression = PreprocessorExpressionParser.Parse(expression.AsSpan());
+            var actualExpression = PreprocessorExpressionParser.Parse(expression.AsMemory());
 
             var notExpression = actualExpression.MustBeOfType<NotExpression>();
             notExpression.Expression.MustBeSymbolExpression(symbol);
