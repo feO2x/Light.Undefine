@@ -66,5 +66,13 @@ namespace Light.Undefine.Tests
 
             PreprocessorExpressionParser.Parse(expressionSource).MustBeSymbolExpression("SILVERLIGHT");
         }
+
+        [Theory]
+        [InlineData("( RELEASE )", "RELEASE")]
+        [InlineData(" ( NET47 )", "NET47")]
+        [InlineData(" ( NET45)", "NET45")]
+        [InlineData("(NET35_CF )", "NET35_CF")]
+        public static void ParseSymbolInBracketsWithWhiteSpace(string expressionSource, string expectedSymbol) => 
+            PreprocessorExpressionParser.Parse(expressionSource).MustBeSymbolExpression(expectedSymbol);
     }
 }
