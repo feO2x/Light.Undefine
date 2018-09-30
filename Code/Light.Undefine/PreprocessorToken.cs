@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using Light.GuardClauses;
 
 namespace Light.Undefine
@@ -16,7 +17,7 @@ namespace Light.Undefine
             SymbolText = symbolText;
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Equals(PreprocessorToken other) => 
             other.Type == Type && (Type != PreprocessorTokenType.Symbol || SymbolText.Equals(other.SymbolText));
 
@@ -30,7 +31,9 @@ namespace Light.Undefine
             return SymbolText.GetHashCode() ^ (int) Type;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator ==(PreprocessorToken x, PreprocessorToken y) => x.Equals(y);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator !=(PreprocessorToken x, PreprocessorToken y) => !x.Equals(y);
 
         public override string ToString() => Type != PreprocessorTokenType.Symbol ? Type.ToString() : $"{Type} \"{SymbolText}\"";

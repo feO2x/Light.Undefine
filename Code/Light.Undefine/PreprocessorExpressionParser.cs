@@ -53,7 +53,21 @@ namespace Light.Undefine
                     return new SymbolExpression(middle.SymbolText);
             }
 
-            throw new NotImplementedException();
+
+            var (topLevelOperator, operatorIndex) = tokens.FindTopLevelOperator();
+            if (operatorIndex == -1)
+                throw new InvalidPreprocessorExpressionException("Could not find operator.");
+
+            if (topLevelOperator.Type == PreprocessorTokenType.OrOperator)
+                return new OrExpression(
+                    CreateExpressionTreeRecursively(tokens.Slice(0, operatorIndex)), 
+                    CreateExpressionTreeRecursively(tokens.Slice(operatorIndex + 1)));
+            if (topLevelOperator.Type == PreprocessorTokenType.AndOperator)
+                return new AndExpression(
+                    CreateExpressionTreeRecursively(tokens.Slice(0, operatorIndex)), 
+                    CreateExpressionTreeRecursively(tokens.Slice(operatorIndex + 1)));
+
+            return new NotExpression(CreateExpressionTreeRecursively(tokens.Slice(operatorIndex + 1)));
         }
     }
 }

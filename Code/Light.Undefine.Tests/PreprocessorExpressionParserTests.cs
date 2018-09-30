@@ -74,5 +74,41 @@ namespace Light.Undefine.Tests
         [InlineData("(NET35_CF )", "NET35_CF")]
         public static void ParseSymbolInBracketsWithWhiteSpace(string expressionSource, string expectedSymbol) => 
             PreprocessorExpressionParser.Parse(expressionSource).MustBeSymbolExpression(expectedSymbol);
+
+        [Fact]
+        public static void ParseOrConcatenationWithThreeSymbols()
+        {
+            var expression = PreprocessorExpressionParser.Parse("NETSTANDARD2_0 || NETSTANDARD1_0 || NET45");
+
+            var topLevelOrExpression = expression.MustBeOfType<OrExpression>();
+            topLevelOrExpression.Left.MustBeSymbolExpression("NETSTANDARD2_0");
+            var innerOrExpression = topLevelOrExpression.Right.MustBeOfType<OrExpression>();
+            innerOrExpression.Left.MustBeSymbolExpression("NETSTANDARD1_0");
+            innerOrExpression.Right.MustBeSymbolExpression("NET45");
+        }
+
+        [Fact]
+        public static void ParseAndConcatenationWithThreeSymbols()
+        {
+            var expression = PreprocessorExpressionParser.Parse("NETCOREAPP && DEBUG && TRACE");
+
+            var topLevelAndExpression = expression.MustBeOfType<AndExpression>();
+            topLevelAndExpression.Left.MustBeSymbolExpression("NETCOREAPP");
+            var innerAndExpression = topLevelAndExpression.Right.MustBeOfType<AndExpression>();
+            innerAndExpression.Left.MustBeSymbolExpression("DEBUG");
+            innerAndExpression.Right.MustBeSymbolExpression("TRACE");
+        }
+
+        [Fact]
+        public static void ParseTopLevelNotExpression()
+        {
+            var expression = PreprocessorExpressionParser.Parse("!(NETSTANDARD || NET45)");
+
+            var topLevelNotExpression = expression.MustBeOfType<NotExpression>();
+            var innerOrExpression = topLevelNotExpression.Expression.MustBeOfType<OrExpression>();
+            innerOrExpression.Left.MustBeSymbolExpression("NETSTANDARD");
+            innerOrExpression.Right.MustBeSymbolExpression("NET45");
+        }
+
     }
 }

@@ -3,9 +3,9 @@
     public enum PreprocessorTokenType
     {
         Symbol = 1,
-        OrOperator,
-        AndOperator,
         NotOperator,
+        AndOperator,
+        OrOperator,
         OpenBracket,
         CloseBracket
     }

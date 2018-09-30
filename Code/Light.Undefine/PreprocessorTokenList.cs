@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using Light.GuardClauses;
+using Light.GuardClauses.FrameworkExtensions;
 
 namespace Light.Undefine
 {
@@ -18,9 +20,44 @@ namespace Light.Undefine
             Count = count;
         }
 
+        public PreprocessorTokenList Slice(int from) => new PreprocessorTokenList(_internalArray, from, Count - from);
+
         public PreprocessorTokenList Slice(int from, int to) => new PreprocessorTokenList(_internalArray, from, to - from);
 
         public Enumerator GetEnumerator() => new Enumerator(_internalArray, _from, Count);
+
+        public (PreprocessorToken, int) FindTopLevelOperator()
+        {
+            var topLevelOperator = default(PreprocessorToken);
+            var operatorIndex = -1;
+            var bracketLevel = 0;
+            for (var i = _from; i < Count; ++i)
+            {
+                var currentToken = _internalArray[i];
+                if (currentToken.Type == PreprocessorTokenType.OpenBracket)
+                {
+                    ++bracketLevel;
+                    continue;
+                }
+
+                if (currentToken.Type == PreprocessorTokenType.CloseBracket)
+                {
+                    --bracketLevel;
+                    continue;
+                }
+
+                if (currentToken.Type == PreprocessorTokenType.Symbol)
+                    continue;
+
+                if (currentToken.Type > topLevelOperator.Type)
+                {
+                    topLevelOperator = currentToken;
+                    operatorIndex = i;
+                }
+            }
+
+            return (topLevelOperator, operatorIndex);
+        }
 
         IEnumerator<PreprocessorToken> IEnumerable<PreprocessorToken>.GetEnumerator() => GetEnumerator();
 
@@ -37,6 +74,8 @@ namespace Light.Undefine
                 return _internalArray[index + _from];
             }
         }
+
+        public override string ToString() => new StringBuilder().AppendItems(this).ToString();
 
         public sealed class Builder
         {
