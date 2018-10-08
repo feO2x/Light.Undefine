@@ -69,10 +69,9 @@ namespace Light.Undefine
                     continue;
                 }
 
-                if (currentToken.Type == PreprocessorTokenType.Symbol)
-                    continue;
-
-                if (bracketLevel >= operatorBracketLevel || currentToken.Type <= topLevelOperator.Type)
+                if (currentToken.Type == PreprocessorTokenType.Symbol ||
+                    bracketLevel > operatorBracketLevel ||
+                    bracketLevel == operatorBracketLevel && currentToken.Type <= topLevelOperator.Type)
                     continue;
 
                 topLevelOperator = currentToken;

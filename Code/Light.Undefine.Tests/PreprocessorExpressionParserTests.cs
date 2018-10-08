@@ -110,5 +110,19 @@ namespace Light.Undefine.Tests
             innerOrExpression.Right.MustBeSymbolExpression("NET45");
         }
 
+        [Fact]
+        public static void ParseComplexAndExpression()
+        {
+            var expression = PreprocessorExpressionParser.Parse("(DEBUG || STAGING) && (NETSTANDARD2_0 || NET45)");
+
+            var topLevelAndExpression = expression.MustBeOfType<AndExpression>();
+            var leftOrExpression = topLevelAndExpression.Left.MustBeOfType<OrExpression>();
+            var rightOrExpression = topLevelAndExpression.Right.MustBeOfType<OrExpression>();
+            leftOrExpression.Left.MustBeSymbolExpression("DEBUG");
+            leftOrExpression.Right.MustBeSymbolExpression("STAGING");
+            rightOrExpression.Left.MustBeSymbolExpression("NETSTANDARD2_0");
+            rightOrExpression.Right.MustBeSymbolExpression("NET45");
+        }
+
     }
 }
