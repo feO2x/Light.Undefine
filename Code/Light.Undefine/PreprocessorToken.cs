@@ -36,6 +36,6 @@ namespace Light.Undefine
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator !=(PreprocessorToken x, PreprocessorToken y) => !x.Equals(y);
 
-        public override string ToString() => Type != PreprocessorTokenType.Symbol ? Type.ToString() : $"{Type} \"{SymbolText}\"";
+        public override string ToString() => Type != PreprocessorTokenType.Symbol ? Type.GetStringRepresentationOfOperatorOrBracket() : SymbolText;
     }
 }

@@ -20,43 +20,81 @@ namespace Light.Undefine
             Count = count;
         }
 
-        public PreprocessorTokenList Slice(int from) => new PreprocessorTokenList(_internalArray, from, Count - from);
+        public PreprocessorTokenList Slice(int from)
+        {
+            from.MustBeGreaterThanOrEqualTo(0, nameof(from)).MustBeLessThan(Count, nameof(from));
+            return new PreprocessorTokenList(_internalArray, from + _from, Count - from);
+        }
 
-        public PreprocessorTokenList Slice(int from, int to) => new PreprocessorTokenList(_internalArray, from, to - from);
+        public PreprocessorTokenList Slice(int from, int exclusiveTo)
+        {
+            from.MustBeGreaterThanOrEqualTo(0, nameof(from)).MustBeLessThan(Count, nameof(from));
+            exclusiveTo.MustBeLessThanOrEqualTo(Count, nameof(exclusiveTo));
+
+            return new PreprocessorTokenList(_internalArray, from + _from, exclusiveTo - from);
+        }
 
         public Enumerator GetEnumerator() => new Enumerator(_internalArray, _from, Count);
 
-        public (PreprocessorToken, int) FindTopLevelOperator()
+        public OperatorAnalysisResult FindTopLevelOperator()
         {
             var topLevelOperator = default(PreprocessorToken);
             var operatorIndex = -1;
+            var operatorBracketLevel = int.MaxValue;
+            
+            var isFirstTokenABracket = false;
+            var isLastTokenABracket = false;
+            var isListContainingSeveralBracketsOnSameLevel = false;
+
+            var exclusiveTo = _from + Count;
             var bracketLevel = 0;
-            for (var i = _from; i < Count; ++i)
+            for (var i = _from; i < exclusiveTo; ++i)
             {
                 var currentToken = _internalArray[i];
                 if (currentToken.Type == PreprocessorTokenType.OpenBracket)
                 {
                     ++bracketLevel;
+                    if (i == _from)
+                        isFirstTokenABracket = true;
                     continue;
                 }
 
                 if (currentToken.Type == PreprocessorTokenType.CloseBracket)
                 {
                     --bracketLevel;
+                    if (i == exclusiveTo - 1)
+                        isLastTokenABracket = true;
+                    else if (bracketLevel == 0)
+                        isListContainingSeveralBracketsOnSameLevel = true;
                     continue;
                 }
 
                 if (currentToken.Type == PreprocessorTokenType.Symbol)
                     continue;
 
-                if (currentToken.Type > topLevelOperator.Type)
-                {
-                    topLevelOperator = currentToken;
-                    operatorIndex = i;
-                }
+                if (bracketLevel >= operatorBracketLevel || currentToken.Type <= topLevelOperator.Type)
+                    continue;
+
+                topLevelOperator = currentToken;
+                operatorIndex = i - _from;
+                operatorBracketLevel = bracketLevel;
             }
 
-            return (topLevelOperator, operatorIndex);
+            return new OperatorAnalysisResult(topLevelOperator, operatorIndex, isFirstTokenABracket && isLastTokenABracket && !isListContainingSeveralBracketsOnSameLevel);
+        }
+
+        public readonly struct OperatorAnalysisResult
+        {
+            public readonly PreprocessorToken Operator;
+            public readonly int OperatorIndex;
+            public readonly bool CanOuterBracketsBeIgnored;
+
+            public OperatorAnalysisResult(PreprocessorToken @operator, int operatorIndex, bool canOuterBracketsBeIgnored)
+            {
+                Operator = @operator;
+                OperatorIndex = operatorIndex;
+                CanOuterBracketsBeIgnored = canOuterBracketsBeIgnored;
+            }
         }
 
         IEnumerator<PreprocessorToken> IEnumerable<PreprocessorToken>.GetEnumerator() => GetEnumerator();
@@ -98,6 +136,8 @@ namespace Light.Undefine
                 for (var i = 0; i < _currentIndex; ++i)
                     _internalArray[i] = default;
                 _currentIndex = 0;
+                _previousToken = default;
+                _bracketBalance = 0;
             }
 
             public bool TryAdd(PreprocessorToken token, out string errorMessage)

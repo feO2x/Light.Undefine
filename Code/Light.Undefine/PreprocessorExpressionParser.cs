@@ -15,25 +15,26 @@ namespace Light.Undefine
 
         private static PreprocessorExpression CreateExpressionTreeRecursively(in PreprocessorTokenList tokens)
         {
-            if (tokens.Count == 1)
+            if (tokens.Count < 4)
             {
-                var token = tokens[0];
-                if (token.Type != PreprocessorTokenType.Symbol)
-                    throw new InvalidPreprocessorExpressionException("A single token must always be a Symbol.");
-                return new SymbolExpression(token.SymbolText);
-            }
+                if (tokens.Count == 1)
+                {
+                    var token = tokens[0];
+                    if (token.Type != PreprocessorTokenType.Symbol)
+                        throw new InvalidPreprocessorExpressionException("A single token must always be a Symbol.");
+                    return new SymbolExpression(token.SymbolText);
+                }
 
-            if (tokens.Count == 2)
-            {
-                var first = tokens[0];
-                var second = tokens[1];
-                if (first.Type != PreprocessorTokenType.NotOperator || second.Type != PreprocessorTokenType.Symbol)
-                    throw new InvalidPreprocessorExpressionException("Two tokens always have to be a Not Operator and a Symbol.");
-                return new NotExpression(new SymbolExpression(second.SymbolText));
-            }
+                if (tokens.Count == 2)
+                {
+                    var first = tokens[0];
+                    var second = tokens[1];
+                    if (first.Type != PreprocessorTokenType.NotOperator || second.Type != PreprocessorTokenType.Symbol)
+                        throw new InvalidPreprocessorExpressionException("Two tokens always have to be a Not Operator and a Symbol.");
+                    return new NotExpression(new SymbolExpression(second.SymbolText));
+                }
 
-            if (tokens.Count == 3)
-            {
+
                 var left = tokens[0];
                 var middle = tokens[1];
                 var right = tokens[2];
@@ -52,22 +53,29 @@ namespace Light.Undefine
                     right.Type == PreprocessorTokenType.CloseBracket)
                     return new SymbolExpression(middle.SymbolText);
             }
-
-
-            var (topLevelOperator, operatorIndex) = tokens.FindTopLevelOperator();
-            if (operatorIndex == -1)
+            
+            var analysisResult = tokens.FindTopLevelOperator();
+            if (analysisResult.OperatorIndex == -1)
                 throw new InvalidPreprocessorExpressionException("Could not find operator.");
 
-            if (topLevelOperator.Type == PreprocessorTokenType.OrOperator)
-                return new OrExpression(
-                    CreateExpressionTreeRecursively(tokens.Slice(0, operatorIndex)), 
-                    CreateExpressionTreeRecursively(tokens.Slice(operatorIndex + 1)));
-            if (topLevelOperator.Type == PreprocessorTokenType.AndOperator)
-                return new AndExpression(
-                    CreateExpressionTreeRecursively(tokens.Slice(0, operatorIndex)), 
-                    CreateExpressionTreeRecursively(tokens.Slice(operatorIndex + 1)));
+            var leftFromIndex = 0;
+            var rightExclusiveToIndex = tokens.Count;
+            if (analysisResult.CanOuterBracketsBeIgnored)
+            {
+                ++leftFromIndex;
+                --rightExclusiveToIndex;
+            }
 
-            return new NotExpression(CreateExpressionTreeRecursively(tokens.Slice(operatorIndex + 1)));
+            if (analysisResult.Operator.Type == PreprocessorTokenType.OrOperator)
+                return new OrExpression(
+                    CreateExpressionTreeRecursively(tokens.Slice(leftFromIndex, analysisResult.OperatorIndex)),
+                    CreateExpressionTreeRecursively(tokens.Slice(analysisResult.OperatorIndex + 1, rightExclusiveToIndex)));
+            if (analysisResult.Operator.Type == PreprocessorTokenType.AndOperator)
+                return new AndExpression(
+                    CreateExpressionTreeRecursively(tokens.Slice(leftFromIndex, analysisResult.OperatorIndex)),
+                    CreateExpressionTreeRecursively(tokens.Slice(analysisResult.OperatorIndex + 1, rightExclusiveToIndex)));
+
+            return new NotExpression(CreateExpressionTreeRecursively(tokens.Slice(analysisResult.OperatorIndex + 1)));
         }
     }
 }
