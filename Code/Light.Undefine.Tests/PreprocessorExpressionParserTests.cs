@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System;
+using FluentAssertions;
 using Light.GuardClauses;
 using Xunit;
 
@@ -8,7 +9,7 @@ namespace Light.Undefine.Tests
     {
         [Theory]
         [MemberData(nameof(ValidSymbols))]
-        public static void ParseSymbol(string symbol) => 
+        public static void ParseSymbol(string symbol) =>
             PreprocessorExpressionParser.Parse(symbol).MustBeSymbolExpression(symbol);
 
         [Theory]
@@ -25,6 +26,9 @@ namespace Light.Undefine.Tests
 
         private static void MustBeSymbolExpression(this PreprocessorExpression expression, string symbol) =>
             expression.MustBeOfType<SymbolExpression>().Name.Should().Be(symbol);
+
+        private static void MustBeNotExpressionWithSymbol(this PreprocessorExpression expression, string symbol) =>
+            expression.MustBeOfType<NotExpression>().Expression.MustBeSymbolExpression(symbol);
 
         public static readonly TheoryData<string> ValidSymbols =
             new TheoryData<string>
@@ -59,70 +63,79 @@ namespace Light.Undefine.Tests
             andExpression.Right.MustBeSymbolExpression("NETSTANDARD");
         }
 
-        [Fact]
-        public static void ParseSymbolWithBracketsAroundIt()
-        {
-            const string expressionSource = "(SILVERLIGHT)"; // <- funny!
-
-            PreprocessorExpressionParser.Parse(expressionSource).MustBeSymbolExpression("SILVERLIGHT");
-        }
-
         [Theory]
+        [InlineData("(SILVERLIGHT)", "SILVERLIGHT")]
         [InlineData("( RELEASE )", "RELEASE")]
         [InlineData(" ( NET47 )", "NET47")]
         [InlineData(" ( NET45)", "NET45")]
         [InlineData("(NET35_CF )", "NET35_CF")]
-        public static void ParseSymbolInBracketsWithWhiteSpace(string expressionSource, string expectedSymbol) => 
+        public static void ParseSymbolInBrackets(string expressionSource, string expectedSymbol) =>
             PreprocessorExpressionParser.Parse(expressionSource).MustBeSymbolExpression(expectedSymbol);
 
-        [Fact]
-        public static void ParseOrConcatenationWithThreeSymbols()
-        {
-            var expression = PreprocessorExpressionParser.Parse("NETSTANDARD2_0 || NETSTANDARD1_0 || NET45");
+        [Theory]
+        [MemberData(nameof(ComplexExpressions))]
+        public static void ParseComplexExpression(string expressionSource, Action<PreprocessorExpression> validateExpression) =>
+            validateExpression(PreprocessorExpressionParser.Parse(expressionSource));
 
-            var topLevelOrExpression = expression.MustBeOfType<OrExpression>();
-            topLevelOrExpression.Left.MustBeSymbolExpression("NETSTANDARD2_0");
-            var innerOrExpression = topLevelOrExpression.Right.MustBeOfType<OrExpression>();
-            innerOrExpression.Left.MustBeSymbolExpression("NETSTANDARD1_0");
-            innerOrExpression.Right.MustBeSymbolExpression("NET45");
-        }
-
-        [Fact]
-        public static void ParseAndConcatenationWithThreeSymbols()
-        {
-            var expression = PreprocessorExpressionParser.Parse("NETCOREAPP && DEBUG && TRACE");
-
-            var topLevelAndExpression = expression.MustBeOfType<AndExpression>();
-            topLevelAndExpression.Left.MustBeSymbolExpression("NETCOREAPP");
-            var innerAndExpression = topLevelAndExpression.Right.MustBeOfType<AndExpression>();
-            innerAndExpression.Left.MustBeSymbolExpression("DEBUG");
-            innerAndExpression.Right.MustBeSymbolExpression("TRACE");
-        }
-
-        [Fact]
-        public static void ParseTopLevelNotExpression()
-        {
-            var expression = PreprocessorExpressionParser.Parse("!(NETSTANDARD || NET45)");
-
-            var topLevelNotExpression = expression.MustBeOfType<NotExpression>();
-            var innerOrExpression = topLevelNotExpression.Expression.MustBeOfType<OrExpression>();
-            innerOrExpression.Left.MustBeSymbolExpression("NETSTANDARD");
-            innerOrExpression.Right.MustBeSymbolExpression("NET45");
-        }
-
-        [Fact]
-        public static void ParseComplexAndExpression()
-        {
-            var expression = PreprocessorExpressionParser.Parse("(DEBUG || STAGING) && (NETSTANDARD2_0 || NET45)");
-
-            var topLevelAndExpression = expression.MustBeOfType<AndExpression>();
-            var leftOrExpression = topLevelAndExpression.Left.MustBeOfType<OrExpression>();
-            var rightOrExpression = topLevelAndExpression.Right.MustBeOfType<OrExpression>();
-            leftOrExpression.Left.MustBeSymbolExpression("DEBUG");
-            leftOrExpression.Right.MustBeSymbolExpression("STAGING");
-            rightOrExpression.Left.MustBeSymbolExpression("NETSTANDARD2_0");
-            rightOrExpression.Right.MustBeSymbolExpression("NET45");
-        }
-
+        public static readonly TheoryData<string, Action<PreprocessorExpression>> ComplexExpressions =
+            new TheoryData<string, Action<PreprocessorExpression>>
+            {
+                {
+                    "(DEBUG || STAGING) && (NETSTANDARD2_0 || NET45)",
+                    expression =>
+                    {
+                        var topLevelAndExpression = expression.MustBeOfType<AndExpression>();
+                        var leftOrExpression = topLevelAndExpression.Left.MustBeOfType<OrExpression>();
+                        var rightOrExpression = topLevelAndExpression.Right.MustBeOfType<OrExpression>();
+                        leftOrExpression.Left.MustBeSymbolExpression("DEBUG");
+                        leftOrExpression.Right.MustBeSymbolExpression("STAGING");
+                        rightOrExpression.Left.MustBeSymbolExpression("NETSTANDARD2_0");
+                        rightOrExpression.Right.MustBeSymbolExpression("NET45");
+                    }
+                },
+                {
+                    "!(NETSTANDARD || NET45)",
+                    expression =>
+                    {
+                        var topLevelNotExpression = expression.MustBeOfType<NotExpression>();
+                        var innerOrExpression = topLevelNotExpression.Expression.MustBeOfType<OrExpression>();
+                        innerOrExpression.Left.MustBeSymbolExpression("NETSTANDARD");
+                        innerOrExpression.Right.MustBeSymbolExpression("NET45");
+                    }
+                },
+                {
+                    "NETCOREAPP && DEBUG && TRACE",
+                    expression =>
+                    {
+                        var topLevelAndExpression = expression.MustBeOfType<AndExpression>();
+                        topLevelAndExpression.Left.MustBeSymbolExpression("NETCOREAPP");
+                        var innerAndExpression = topLevelAndExpression.Right.MustBeOfType<AndExpression>();
+                        innerAndExpression.Left.MustBeSymbolExpression("DEBUG");
+                        innerAndExpression.Right.MustBeSymbolExpression("TRACE");
+                    }
+                },
+                {
+                    "NETSTANDARD2_0 || NETSTANDARD1_0 || NET45",
+                    expression =>
+                    {
+                        var topLevelOrExpression = expression.MustBeOfType<OrExpression>();
+                        topLevelOrExpression.Left.MustBeSymbolExpression("NETSTANDARD2_0");
+                        var innerOrExpression = topLevelOrExpression.Right.MustBeOfType<OrExpression>();
+                        innerOrExpression.Left.MustBeSymbolExpression("NETSTANDARD1_0");
+                        innerOrExpression.Right.MustBeSymbolExpression("NET45");
+                    }
+                },
+                {
+                    "(!NET35 && !NET35_CF) && DEBUG",
+                    expression =>
+                    {
+                        var andExpression = expression.MustBeOfType<AndExpression>();
+                        andExpression.Right.MustBeSymbolExpression("DEBUG");
+                        var orExpression = andExpression.Left.MustBeOfType<AndExpression>();
+                        orExpression.Left.MustBeNotExpressionWithSymbol("NET35");
+                        orExpression.Right.MustBeNotExpressionWithSymbol("NET35_CF");
+                    }
+                }
+            };
     }
 }
