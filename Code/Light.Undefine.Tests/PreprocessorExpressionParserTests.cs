@@ -135,6 +135,15 @@ namespace Light.Undefine.Tests
                         orExpression.Left.MustBeNotExpressionWithSymbol("NET35");
                         orExpression.Right.MustBeNotExpressionWithSymbol("NET35_CF");
                     }
+                },
+                {
+                    "(!DEBUG) && (!STAGING)",
+                    expression =>
+                    {
+                        var andExpression = expression.MustBeOfType<AndExpression>();
+                        andExpression.Left.MustBeNotExpressionWithSymbol("DEBUG");
+                        andExpression.Right.MustBeNotExpressionWithSymbol("STAGING");
+                    }
                 }
             };
     }

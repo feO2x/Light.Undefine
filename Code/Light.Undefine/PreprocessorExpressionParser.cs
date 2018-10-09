@@ -75,7 +75,7 @@ namespace Light.Undefine
                     CreateExpressionTreeRecursively(tokens.Slice(leftFromIndex, analysisResult.OperatorIndex)),
                     CreateExpressionTreeRecursively(tokens.Slice(analysisResult.OperatorIndex + 1, rightExclusiveToIndex)));
 
-            return new NotExpression(CreateExpressionTreeRecursively(tokens.Slice(analysisResult.OperatorIndex + 1)));
+            return new NotExpression(CreateExpressionTreeRecursively(tokens.Slice(analysisResult.OperatorIndex + 1, rightExclusiveToIndex)));
         }
     }
 }

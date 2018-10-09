@@ -20,12 +20,6 @@ namespace Light.Undefine
             Count = count;
         }
 
-        public PreprocessorTokenList Slice(int from)
-        {
-            from.MustBeGreaterThanOrEqualTo(0, nameof(from)).MustBeLessThan(Count, nameof(from));
-            return new PreprocessorTokenList(_internalArray, from + _from, Count - from);
-        }
-
         public PreprocessorTokenList Slice(int from, int exclusiveTo)
         {
             from.MustBeGreaterThanOrEqualTo(0, nameof(from)).MustBeLessThan(Count, nameof(from));
