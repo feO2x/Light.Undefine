@@ -144,6 +144,45 @@ namespace Light.Undefine.Tests
                         andExpression.Left.MustBeNotExpressionWithSymbol("DEBUG");
                         andExpression.Right.MustBeNotExpressionWithSymbol("STAGING");
                     }
+                },
+                {
+                    "(!RELEASE || (STAGING && !DEVELOPMENT))",
+                    expression =>
+                    {
+                        var orExpression = expression.MustBeOfType<OrExpression>();
+                        orExpression.Left.MustBeNotExpressionWithSymbol("RELEASE");
+                        var andExpression = orExpression.Right.MustBeOfType<AndExpression>();
+                        andExpression.Left.MustBeSymbolExpression("STAGING");
+                        andExpression.Right.MustBeNotExpressionWithSymbol("DEVELOPMENT");
+                    }
+                },
+                {
+                    "((!RELEASE && !STAGING) || DEVELOPMENT)",
+                    expression =>
+                    {
+                        var orExpression = expression.MustBeOfType<OrExpression>();
+                        orExpression.Right.MustBeSymbolExpression("DEVELOPMENT");
+                        var andExpression = orExpression.Left.MustBeOfType<AndExpression>();
+                        andExpression.Left.MustBeNotExpressionWithSymbol("RELEASE");
+                        andExpression.Right.MustBeNotExpressionWithSymbol("STAGING");
+                    }
+                },
+                {
+                    "(((!DEBUG)))",
+                    expression => expression.MustBeNotExpressionWithSymbol("DEBUG")
+                },
+                {
+                    "((((NETSTANDARD))))",
+                    expression => expression.MustBeSymbolExpression("NETSTANDARD")
+                },
+                {
+                    "NETSTANDARD || ((NET45))",
+                    expression =>
+                    {
+                        var orExpression = expression.MustBeOfType<OrExpression>();
+                        orExpression.Left.MustBeSymbolExpression("NETSTANDARD");
+                        orExpression.Right.MustBeSymbolExpression("NET45");
+                    }
                 }
             };
     }

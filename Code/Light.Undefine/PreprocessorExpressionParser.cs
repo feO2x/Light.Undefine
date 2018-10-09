@@ -55,27 +55,22 @@ namespace Light.Undefine
             }
             
             var analysisResult = tokens.FindTopLevelOperator();
+            if (analysisResult.CanOuterBracketsBeIgnored)
+                return CreateExpressionTreeRecursively(tokens.Slice(1, tokens.Count - 1));
+
             if (analysisResult.OperatorIndex == -1)
                 throw new InvalidPreprocessorExpressionException("Could not find operator.");
 
-            var leftFromIndex = 0;
-            var rightExclusiveToIndex = tokens.Count;
-            if (analysisResult.CanOuterBracketsBeIgnored)
-            {
-                ++leftFromIndex;
-                --rightExclusiveToIndex;
-            }
-
             if (analysisResult.Operator.Type == PreprocessorTokenType.OrOperator)
                 return new OrExpression(
-                    CreateExpressionTreeRecursively(tokens.Slice(leftFromIndex, analysisResult.OperatorIndex)),
-                    CreateExpressionTreeRecursively(tokens.Slice(analysisResult.OperatorIndex + 1, rightExclusiveToIndex)));
+                    CreateExpressionTreeRecursively(tokens.Slice(0, analysisResult.OperatorIndex)),
+                    CreateExpressionTreeRecursively(tokens.Slice(analysisResult.OperatorIndex + 1)));
             if (analysisResult.Operator.Type == PreprocessorTokenType.AndOperator)
                 return new AndExpression(
-                    CreateExpressionTreeRecursively(tokens.Slice(leftFromIndex, analysisResult.OperatorIndex)),
-                    CreateExpressionTreeRecursively(tokens.Slice(analysisResult.OperatorIndex + 1, rightExclusiveToIndex)));
+                    CreateExpressionTreeRecursively(tokens.Slice(0, analysisResult.OperatorIndex)),
+                    CreateExpressionTreeRecursively(tokens.Slice(analysisResult.OperatorIndex + 1)));
 
-            return new NotExpression(CreateExpressionTreeRecursively(tokens.Slice(analysisResult.OperatorIndex + 1, rightExclusiveToIndex)));
+            return new NotExpression(CreateExpressionTreeRecursively(tokens.Slice(analysisResult.OperatorIndex + 1)));
         }
     }
 }

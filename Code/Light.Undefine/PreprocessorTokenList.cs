@@ -20,6 +20,12 @@ namespace Light.Undefine
             Count = count;
         }
 
+        public PreprocessorTokenList Slice(int from)
+        {
+            from.MustBeGreaterThanOrEqualTo(0, nameof(from)).MustBeLessThan(Count, nameof(from));
+            return new PreprocessorTokenList(_internalArray, from + _from, Count - from);
+        }
+
         public PreprocessorTokenList Slice(int from, int exclusiveTo)
         {
             from.MustBeGreaterThanOrEqualTo(0, nameof(from)).MustBeLessThan(Count, nameof(from));
@@ -38,7 +44,7 @@ namespace Light.Undefine
             
             var isFirstTokenABracket = false;
             var isLastTokenABracket = false;
-            var isListContainingSeveralBracketsOnSameLevel = false;
+            var canOuterBracketsBeIgnored = false;
 
             var exclusiveTo = _from + Count;
             var bracketLevel = 0;
@@ -59,7 +65,7 @@ namespace Light.Undefine
                     if (i == exclusiveTo - 1)
                         isLastTokenABracket = true;
                     else if (bracketLevel == 0)
-                        isListContainingSeveralBracketsOnSameLevel = true;
+                        canOuterBracketsBeIgnored = true;
                     continue;
                 }
 
@@ -73,7 +79,7 @@ namespace Light.Undefine
                 operatorBracketLevel = bracketLevel;
             }
 
-            return new OperatorAnalysisResult(topLevelOperator, operatorIndex, isFirstTokenABracket && isLastTokenABracket && !isListContainingSeveralBracketsOnSameLevel);
+            return new OperatorAnalysisResult(topLevelOperator, operatorIndex, isFirstTokenABracket && isLastTokenABracket && !canOuterBracketsBeIgnored);
         }
 
         public readonly struct OperatorAnalysisResult
@@ -221,9 +227,10 @@ namespace Light.Undefine
 
                 if (_previousToken.Type == PreprocessorTokenType.CloseBracket &&
                     token.Type != PreprocessorTokenType.OrOperator &&
-                    token.Type != PreprocessorTokenType.AndOperator)
+                    token.Type != PreprocessorTokenType.AndOperator &&
+                    token.Type != PreprocessorTokenType.CloseBracket)
                 {
-                    errorMessage = $"Expected Or Operator or And Operator after {_previousToken}, but actually got {token}.";
+                    errorMessage = $"Expected Or Operator, or And Operator, or Close Bracket after {_previousToken}, but actually got {token}.";
                     return false;
                 }
 
