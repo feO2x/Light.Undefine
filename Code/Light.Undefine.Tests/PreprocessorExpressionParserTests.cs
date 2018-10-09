@@ -1,7 +1,9 @@
 ﻿using System;
 using FluentAssertions;
+using FluentAssertions.Specialized;
 using Light.GuardClauses;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Light.Undefine.Tests
 {
@@ -185,5 +187,27 @@ namespace Light.Undefine.Tests
                     }
                 }
             };
+
+        public sealed class InvalidExpressionTests
+        {
+            public readonly ITestOutputHelper Output;
+            public InvalidExpressionTests(ITestOutputHelper output) => Output = output;
+
+            [Theory]
+            [InlineData("()")] // Brackets without an expression inside of it
+            [InlineData("DEBUG &&")] // No right expression for And operator
+            [InlineData("|| RELEASE")] // No left expression for Or operator
+            [InlineData("NETSTANDARD || NET45)")] // close bracket without corresponding open bracket
+            [InlineData("!")] // Not operator without subsequent expression 
+            [InlineData("DEBUG!")] // wrong placement of Not operator
+            [InlineData("(RELEASE")] // Missing close bracket
+            [InlineData("DEBUG && ((NETSTANDARD2_0 || NETSTANDARD1_0)")] // More open than close brackets in complex expression
+            [InlineData("RELEASE && ( )")] // Right expression of And operator is invalid use of brackets
+            public void InvalidExpressions(string invalidExpressionSource) =>
+                new Action(() => PreprocessorExpressionParser.Parse(invalidExpressionSource)).Should().Throw<InvalidPreprocessorExpressionException>().WriteExceptionTo(Output);
+        }
+
+        private static void WriteExceptionTo<TException>(this ExceptionAssertions<TException> exceptionAssertion, ITestOutputHelper output) where TException : Exception =>
+            output.WriteLine(exceptionAssertion.Which.ToString());
     }
 }

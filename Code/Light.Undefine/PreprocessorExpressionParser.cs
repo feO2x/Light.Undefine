@@ -6,14 +6,14 @@ namespace Light.Undefine
     {
         public static PreprocessorExpression Parse(string expression, PreprocessorTokenList.Builder tokenListBuilder = null) => Parse(expression.AsMemory());
 
-        public static PreprocessorExpression Parse(ReadOnlyMemory<char> expression, PreprocessorTokenList.Builder tokenListBuilder = null)
+        public static PreprocessorExpression Parse(in ReadOnlyMemory<char> expression, PreprocessorTokenList.Builder tokenListBuilder = null)
         {
             tokenListBuilder = tokenListBuilder ?? PreprocessorTokenList.Builder.CreateDefault();
             var tokens = PreprocessorExpressionTokenizer.CreateTokens(expression, tokenListBuilder);
-            return CreateExpressionTreeRecursively(tokens);
+            return CreateExpressionTreeRecursively(tokens, expression);
         }
 
-        private static PreprocessorExpression CreateExpressionTreeRecursively(in PreprocessorTokenList tokens)
+        private static PreprocessorExpression CreateExpressionTreeRecursively(in PreprocessorTokenList tokens, in ReadOnlyMemory<char> expression)
         {
             if (tokens.Count < 4)
             {
@@ -21,7 +21,7 @@ namespace Light.Undefine
                 {
                     var token = tokens[0];
                     if (token.Type != PreprocessorTokenType.Symbol)
-                        throw new InvalidPreprocessorExpressionException("A single token must always be a Symbol.");
+                        ThrowInvalidExpression(expression);
                     return new SymbolExpression(token.SymbolText);
                 }
 
@@ -30,7 +30,7 @@ namespace Light.Undefine
                     var first = tokens[0];
                     var second = tokens[1];
                     if (first.Type != PreprocessorTokenType.NotOperator || second.Type != PreprocessorTokenType.Symbol)
-                        throw new InvalidPreprocessorExpressionException("Two tokens always have to be a Not Operator and a Symbol.");
+                        ThrowInvalidExpression(expression);
                     return new NotExpression(new SymbolExpression(second.SymbolText));
                 }
 
@@ -52,25 +52,30 @@ namespace Light.Undefine
                     middle.Type == PreprocessorTokenType.Symbol &&
                     right.Type == PreprocessorTokenType.CloseBracket)
                     return new SymbolExpression(middle.SymbolText);
+
+                ThrowInvalidExpression(expression);
             }
             
-            var analysisResult = tokens.FindTopLevelOperator();
+            var analysisResult = tokens.AnalyzeComplexExpression();
             if (analysisResult.CanOuterBracketsBeIgnored)
-                return CreateExpressionTreeRecursively(tokens.Slice(1, tokens.Count - 1));
+                return CreateExpressionTreeRecursively(tokens.Slice(1, tokens.Count - 1), expression);
 
-            if (analysisResult.OperatorIndex == -1)
-                throw new InvalidPreprocessorExpressionException("Could not find operator.");
+            if (analysisResult.TopLevelOperatorIndex == -1)
+                ThrowInvalidExpression(expression);
 
-            if (analysisResult.Operator.Type == PreprocessorTokenType.OrOperator)
+            if (analysisResult.TopLevelOperator.Type == PreprocessorTokenType.OrOperator)
                 return new OrExpression(
-                    CreateExpressionTreeRecursively(tokens.Slice(0, analysisResult.OperatorIndex)),
-                    CreateExpressionTreeRecursively(tokens.Slice(analysisResult.OperatorIndex + 1)));
-            if (analysisResult.Operator.Type == PreprocessorTokenType.AndOperator)
+                    CreateExpressionTreeRecursively(tokens.Slice(0, analysisResult.TopLevelOperatorIndex), expression),
+                    CreateExpressionTreeRecursively(tokens.Slice(analysisResult.TopLevelOperatorIndex + 1), expression));
+            if (analysisResult.TopLevelOperator.Type == PreprocessorTokenType.AndOperator)
                 return new AndExpression(
-                    CreateExpressionTreeRecursively(tokens.Slice(0, analysisResult.OperatorIndex)),
-                    CreateExpressionTreeRecursively(tokens.Slice(analysisResult.OperatorIndex + 1)));
+                    CreateExpressionTreeRecursively(tokens.Slice(0, analysisResult.TopLevelOperatorIndex), expression),
+                    CreateExpressionTreeRecursively(tokens.Slice(analysisResult.TopLevelOperatorIndex + 1), expression));
 
-            return new NotExpression(CreateExpressionTreeRecursively(tokens.Slice(analysisResult.OperatorIndex + 1)));
+            return new NotExpression(CreateExpressionTreeRecursively(tokens.Slice(analysisResult.TopLevelOperatorIndex + 1), expression));
         }
+
+        private static void ThrowInvalidExpression(in ReadOnlyMemory<char> expression) => 
+            throw new InvalidPreprocessorExpressionException($"\"{expression}\" cannot be parsed to a valid Preprocessor Expression.");
     }
 }

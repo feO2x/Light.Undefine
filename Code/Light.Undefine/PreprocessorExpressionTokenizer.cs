@@ -12,7 +12,7 @@ namespace Light.Undefine
         private const char CloseBracketCharacter = ')';
         private const char Underscore = '_';
 
-        public static PreprocessorTokenList CreateTokens(ReadOnlyMemory<char> expression, PreprocessorTokenList.Builder tokenListBuilder) =>
+        public static PreprocessorTokenList CreateTokens(in ReadOnlyMemory<char> expression, PreprocessorTokenList.Builder tokenListBuilder) =>
             new InternalTokenizer(expression, tokenListBuilder).CreateTokens();
 
         private static string ToOperatorSymbol(this char character) => new string(character, 2);
@@ -23,7 +23,7 @@ namespace Light.Undefine
             private readonly PreprocessorTokenList.Builder _tokenListBuilder;
             private int _currentIndex;
 
-            public InternalTokenizer(ReadOnlyMemory<char> expression, PreprocessorTokenList.Builder tokenListBuilder)
+            public InternalTokenizer(in ReadOnlyMemory<char> expression, PreprocessorTokenList.Builder tokenListBuilder)
             {
                 _expression = expression;
                 _tokenListBuilder = tokenListBuilder.MustNotBeNull(nameof(tokenListBuilder));

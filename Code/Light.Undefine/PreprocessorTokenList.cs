@@ -36,7 +36,7 @@ namespace Light.Undefine
 
         public Enumerator GetEnumerator() => new Enumerator(_internalArray, _from, Count);
 
-        public OperatorAnalysisResult FindTopLevelOperator()
+        public OperatorAnalysisResult AnalyzeComplexExpression()
         {
             var topLevelOperator = default(PreprocessorToken);
             var operatorIndex = -1;
@@ -84,14 +84,14 @@ namespace Light.Undefine
 
         public readonly struct OperatorAnalysisResult
         {
-            public readonly PreprocessorToken Operator;
-            public readonly int OperatorIndex;
+            public readonly PreprocessorToken TopLevelOperator;
+            public readonly int TopLevelOperatorIndex;
             public readonly bool CanOuterBracketsBeIgnored;
 
-            public OperatorAnalysisResult(PreprocessorToken @operator, int operatorIndex, bool canOuterBracketsBeIgnored)
+            public OperatorAnalysisResult(PreprocessorToken topLevelOperator, int topLevelOperatorIndex, bool canOuterBracketsBeIgnored)
             {
-                Operator = @operator;
-                OperatorIndex = operatorIndex;
+                TopLevelOperator = topLevelOperator;
+                TopLevelOperatorIndex = topLevelOperatorIndex;
                 CanOuterBracketsBeIgnored = canOuterBracketsBeIgnored;
             }
         }
@@ -156,7 +156,7 @@ namespace Light.Undefine
             {
                 if (_currentIndex == 0)
                 {
-                    errorMessage = "Nothing was parsed.";
+                    errorMessage = "The expression is empty.";
                     tokenList = default;
                     return false;
                 }
