@@ -1,5 +1,4 @@
 ﻿using System;
-using Light.GuardClauses;
 
 namespace Light.Undefine
 {
@@ -12,99 +11,97 @@ namespace Light.Undefine
         private const char CloseBracketCharacter = ')';
         private const char Underscore = '_';
 
-        public static PreprocessorTokenList CreateTokens(in ReadOnlyMemory<char> expression, PreprocessorTokenList.Builder tokenListBuilder) =>
+        public static PreprocessorTokenList CreateTokens(in ReadOnlySpan<char> expression, PreprocessorTokenList.Builder tokenListBuilder) =>
             new InternalTokenizer(expression, tokenListBuilder).CreateTokens();
 
         private static string ToOperatorSymbol(this char character) => new string(character, 2);
 
-        private struct InternalTokenizer
+        private ref struct InternalTokenizer
         {
-            private readonly ReadOnlyMemory<char> _expression;
+            private readonly ReadOnlySpan<char> _expression;
             private readonly PreprocessorTokenList.Builder _tokenListBuilder;
             private int _currentIndex;
 
-            public InternalTokenizer(in ReadOnlyMemory<char> expression, PreprocessorTokenList.Builder tokenListBuilder)
+            public InternalTokenizer(ReadOnlySpan<char> expression, PreprocessorTokenList.Builder tokenListBuilder)
             {
+                _tokenListBuilder = tokenListBuilder;
                 _expression = expression;
-                _tokenListBuilder = tokenListBuilder.MustNotBeNull(nameof(tokenListBuilder));
                 _currentIndex = 0;
             }
 
             public PreprocessorTokenList CreateTokens()
             {
-                var span = _expression.Span;
-
-                while (AdvanceToNextNonWhiteSpaceCharacter(span))
+                while (AdvanceToNextNonWhiteSpaceCharacter())
                 {
-                    var currentCharacter = span[_currentIndex];
+                    var currentCharacter = _expression[_currentIndex];
                     if (currentCharacter == AndOperatorCharacter)
-                        ExpectTwoCharacterOperator(AndOperatorCharacter, span, PreprocessorTokenType.AndOperator);
+                        ExpectTwoCharacterOperator(AndOperatorCharacter, PreprocessorTokenType.AndOperator);
                     else if (currentCharacter == OrOperatorCharacter)
-                        ExpectTwoCharacterOperator(OrOperatorCharacter, span, PreprocessorTokenType.OrOperator);
+                        ExpectTwoCharacterOperator(OrOperatorCharacter, PreprocessorTokenType.OrOperator);
                     else if (currentCharacter == NotOperatorCharacter)
-                        AddSingleCharacterToken(span, PreprocessorTokenType.NotOperator);
+                        AddSingleCharacterToken(PreprocessorTokenType.NotOperator);
                     else if (currentCharacter == OpenBracketCharacter)
-                        AddSingleCharacterToken(span, PreprocessorTokenType.OpenBracket);
+                        AddSingleCharacterToken(PreprocessorTokenType.OpenBracket);
                     else if (currentCharacter == CloseBracketCharacter)
-                        AddSingleCharacterToken(span, PreprocessorTokenType.CloseBracket);
+                        AddSingleCharacterToken(PreprocessorTokenType.CloseBracket);
                     else if (char.IsLetter(currentCharacter) || currentCharacter == Underscore)
-                        ExpectSymbol(span);
+                        ExpectSymbol();
                 }
 
                 if (!_tokenListBuilder.TryBuild(out var tokenList, out var errorMessage))
-                    ThrowErrorFromBuilder(span, errorMessage);
+                    ThrowErrorFromBuilder(_expression, errorMessage);
                 return tokenList;
             }
 
-            private void ExpectSymbol(in ReadOnlySpan<char> span)
+            private void ExpectSymbol()
             {
                 var startIndex = _currentIndex;
-                while (++_currentIndex < span.Length)
+                while (++_currentIndex < _expression.Length)
                 {
-                    var currentCharacter = span[_currentIndex];
-                    if (char.IsWhiteSpace(currentCharacter) || 
-                        currentCharacter == OrOperatorCharacter || 
-                        currentCharacter == AndOperatorCharacter || 
+                    var currentCharacter = _expression[_currentIndex];
+                    if (char.IsWhiteSpace(currentCharacter) ||
+                        currentCharacter == OrOperatorCharacter ||
+                        currentCharacter == AndOperatorCharacter ||
                         currentCharacter == CloseBracketCharacter)
                         break;
                     if (char.IsLetterOrDigit(currentCharacter) || currentCharacter == Underscore)
                         continue;
 
-                    throw new InvalidPreprocessorExpressionException($"The expression \"{span.ToString()}\" contains an invalid Symbol character at position {_currentIndex}.");
+                    throw new InvalidPreprocessorExpressionException($"The expression \"{_expression.ToString()}\" contains an invalid Symbol character at position {_currentIndex}.");
                 }
 
-                if (!_tokenListBuilder.TryAdd(new PreprocessorToken(PreprocessorTokenType.Symbol, span.Slice(startIndex, _currentIndex - startIndex).ToString()), out var errorMessage))
-                    ThrowErrorFromBuilder(span, errorMessage);
+                if (!_tokenListBuilder.TryAdd(new PreprocessorToken(PreprocessorTokenType.Symbol, _expression.Slice(startIndex, _currentIndex - startIndex).ToString()), out var errorMessage))
+                    ThrowErrorFromBuilder(_expression, errorMessage);
             }
 
-            private void ExpectTwoCharacterOperator(char operatorCharacter, in ReadOnlySpan<char> span, PreprocessorTokenType tokenType)
+            private void ExpectTwoCharacterOperator(char operatorCharacter, PreprocessorTokenType tokenType)
             {
-                if (span.Length - _currentIndex - 1 < 2)
-                    throw new InvalidPreprocessorExpressionException($"The expression \"{span.ToString()}\" contains an invalid use of the {operatorCharacter.ToOperatorSymbol()} operator at index {_currentIndex}.");
+                if (_expression.Length - _currentIndex - 1 < 2)
+                    throw new InvalidPreprocessorExpressionException($"The expression \"{_expression.ToString()}\" contains an invalid use of the {operatorCharacter.ToOperatorSymbol()} operator at index {_currentIndex}.");
 
-                if (span[++_currentIndex] != operatorCharacter)
-                    throw new InvalidPreprocessorExpressionException($"The expression \"{span.ToString()}\" contains no second operator symbol for {operatorCharacter.ToOperatorSymbol()} at index {_currentIndex}.");
+                if (_expression[++_currentIndex] != operatorCharacter)
+                    throw new InvalidPreprocessorExpressionException($"The expression \"{_expression.ToString()}\" contains no second operator symbol for {operatorCharacter.ToOperatorSymbol()} at index {_currentIndex}.");
 
                 if (!_tokenListBuilder.TryAdd(new PreprocessorToken(tokenType), out var errorMessage))
-                    ThrowErrorFromBuilder(span, errorMessage);
+                    ThrowErrorFromBuilder(_expression, errorMessage);
                 ++_currentIndex;
             }
 
-            private void AddSingleCharacterToken(in ReadOnlySpan<char> span, PreprocessorTokenType tokenType)
+            private void AddSingleCharacterToken(PreprocessorTokenType tokenType)
             {
                 if (!_tokenListBuilder.TryAdd(new PreprocessorToken(tokenType), out var errorMessage))
-                    ThrowErrorFromBuilder(span, errorMessage);
+                    ThrowErrorFromBuilder(_expression, errorMessage);
                 ++_currentIndex;
             }
 
-            private bool AdvanceToNextNonWhiteSpaceCharacter(in ReadOnlySpan<char> span)
+            private bool AdvanceToNextNonWhiteSpaceCharacter()
             {
-                if (_currentIndex >= span.Length)
+                if (_currentIndex >= _expression.Length)
                     return false;
 
-                while (char.IsWhiteSpace(span[_currentIndex]))
+                while (char.IsWhiteSpace(_expression[_currentIndex]))
                 {
-                    if (_currentIndex < span.Length - 1)
+                    if (_currentIndex < _expression.Length - 1)
                         ++_currentIndex;
                     else
                         return false;

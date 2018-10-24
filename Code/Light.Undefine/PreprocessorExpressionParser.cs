@@ -4,16 +4,16 @@ namespace Light.Undefine
 {
     public static class PreprocessorExpressionParser
     {
-        public static PreprocessorExpression Parse(string expression, PreprocessorTokenList.Builder tokenListBuilder = null) => Parse(expression.AsMemory());
+        public static PreprocessorExpression Parse(string expression, PreprocessorTokenList.Builder tokenListBuilder = null) => Parse(expression.AsSpan());
 
-        public static PreprocessorExpression Parse(in ReadOnlyMemory<char> expression, PreprocessorTokenList.Builder tokenListBuilder = null)
+        public static PreprocessorExpression Parse(in ReadOnlySpan<char> expression, PreprocessorTokenList.Builder tokenListBuilder = null)
         {
             tokenListBuilder = tokenListBuilder ?? PreprocessorTokenList.Builder.CreateDefault();
             var tokens = PreprocessorExpressionTokenizer.CreateTokens(expression, tokenListBuilder);
             return CreateExpressionTreeRecursively(tokens, expression);
         }
 
-        private static PreprocessorExpression CreateExpressionTreeRecursively(in PreprocessorTokenList tokens, in ReadOnlyMemory<char> expression)
+        private static PreprocessorExpression CreateExpressionTreeRecursively(in PreprocessorTokenList tokens, in ReadOnlySpan<char> expression)
         {
             if (tokens.Count < 4)
             {
@@ -75,7 +75,7 @@ namespace Light.Undefine
             return new NotExpression(CreateExpressionTreeRecursively(tokens.Slice(analysisResult.TopLevelOperatorIndex + 1), expression));
         }
 
-        private static void ThrowInvalidExpression(in ReadOnlyMemory<char> expression) => 
-            throw new InvalidPreprocessorExpressionException($"\"{expression}\" cannot be parsed to a valid Preprocessor Expression.");
+        private static void ThrowInvalidExpression(in ReadOnlySpan<char> expression) => 
+            throw new InvalidPreprocessorExpressionException($"\"{expression.ToString()}\" cannot be parsed to a valid Preprocessor Expression.");
     }
 }
