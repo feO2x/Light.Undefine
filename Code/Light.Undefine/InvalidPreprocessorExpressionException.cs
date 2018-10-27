@@ -1,9 +1,8 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
 namespace Light.Undefine
 {
-    public class InvalidPreprocessorExpressionException : Exception
+    public class InvalidPreprocessorExpressionException : InvalidPreprocessorDirectiveExpression
     {
         public InvalidPreprocessorExpressionException(string message) : base(message) { }
 

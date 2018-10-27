@@ -76,6 +76,6 @@ namespace Light.Undefine
         }
 
         private static void ThrowInvalidExpression(in ReadOnlySpan<char> expression) => 
-            throw new InvalidPreprocessorExpressionException($"\"{expression.ToString()}\" cannot be parsed to a valid Preprocessor Expression.");
+            throw new InvalidPreprocessorExpressionException($"\"{expression.ToString()}\" cannot be parsed to a valid preprocessor expression.");
     }
 }
