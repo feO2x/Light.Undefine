@@ -70,6 +70,7 @@ namespace Light.Undefine
                     throw new InvalidPreprocessorExpressionException($"The expression \"{_expression.ToString()}\" contains an invalid Symbol character at position {_currentIndex}.");
                 }
 
+                // ReSharper disable once ImpureMethodCallOnReadonlyValueField -- ReadOnlySpan<T>.Slice is actually a pure method but ReSharper does not recognize this
                 if (!_tokenListBuilder.TryAdd(new PreprocessorExpressionToken(PreprocessorTokenType.Symbol, _expression.Slice(startIndex, _currentIndex - startIndex).ToString()), out var errorMessage))
                     ThrowErrorFromBuilder(_expression, errorMessage);
             }
