@@ -11,25 +11,26 @@ namespace Light.Undefine
         public readonly ReadOnlySpan<char> SourceCode;
         public readonly PreprocessorExpressionTokenList.Builder TokenListBuilder;
         private int _currentIndex;
-        private int _lineCount;
+        private int _currentLineNumber;
 
         public LineOfCodeParser(ReadOnlySpan<char> sourceCode, PreprocessorExpressionTokenList.Builder tokenListBuilder = null)
         {
             SourceCode = sourceCode;
             TokenListBuilder = tokenListBuilder ?? PreprocessorExpressionTokenList.Builder.CreateDefault();
-            _currentIndex = _lineCount = 0;
+            _currentLineNumber = 0;
+            _currentIndex = -1;
         }
 
         public bool TryParseNext(out LineOfCode lineOfCode)
         {
-            var startIndex = _currentIndex;
+            var startIndex = _currentIndex + 1;
 
             // Check if there are actually any non-white-space characters on this line of code
             if (!AdvanceToNextNonWhiteSpaceCharacterOnSameLine(out var currentCharacter))
             {
                 if (startIndex < _currentIndex && _currentIndex < SourceCode.Length)
                 {
-                    ++_lineCount;
+                    ++_currentLineNumber;
                     lineOfCode = CreateLineOfCode(LineOfCodeType.SourceCode, startIndex);
                     return true;
                 }
@@ -38,7 +39,7 @@ namespace Light.Undefine
                 return false;
             }
 
-            ++_lineCount;
+            ++_currentLineNumber;
 
             // If yes, then check if it is a preprocessor directive
             if (currentCharacter != '#')
@@ -63,6 +64,7 @@ namespace Light.Undefine
                 !AdvanceCurrentIndex())
                 ThrowInvalidDirective(startIndex);
 
+            currentCharacter = GetCurrentCharacter();
             if (currentCharacter == 'n')
                 return ExpectEndIfDirective(startIndex, out lineOfCode);
 
@@ -70,6 +72,7 @@ namespace Light.Undefine
                 !AdvanceCurrentIndex())
                 ThrowInvalidDirective(startIndex);
 
+            currentCharacter = GetCurrentCharacter();
             if (currentCharacter == 's')
                 return ExpectElseDirective(startIndex, out lineOfCode);
 
@@ -212,7 +215,7 @@ namespace Light.Undefine
             if (++_currentIndex < SourceCode.Length)
                 return true;
 
-            _currentIndex = SourceCode.Length;
+            _currentIndex = SourceCode.Length - 1;
             return false;
         }
 
@@ -230,11 +233,11 @@ namespace Light.Undefine
             _currentIndex = startIndex;
             AdvanceToEndOfLineOrEndOfSpan();
             var expression = SourceCode.Slice(startIndex, CalculateSubSpanLength(startIndex));
-            throw new InvalidPreprocessorDirectiveExpression($"\"{expression.ToString()}\" on line {_lineCount} cannot be parsed to a valid preprocessor directive.");
+            throw new InvalidPreprocessorDirectiveException($"\"{expression.ToString()}\" on line {_currentLineNumber} cannot be parsed to a valid preprocessor directive.");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private LineOfCode CreateLineOfCode(LineOfCodeType type, int startIndex, PreprocessorExpression expression = null) =>
-            new LineOfCode(type, expression, SourceCode.Slice(startIndex, CalculateSubSpanLength(startIndex)), startIndex, _currentIndex);
+            new LineOfCode(type, expression, SourceCode.Slice(startIndex, CalculateSubSpanLength(startIndex)), _currentLineNumber, startIndex, _currentIndex);
     }
 }

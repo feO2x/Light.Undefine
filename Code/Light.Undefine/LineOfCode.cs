@@ -9,10 +9,11 @@ namespace Light.Undefine
         public readonly LineOfCodeType Type;
         public readonly PreprocessorExpression Expression;
         public readonly ReadOnlySpan<char> Span;
+        public readonly int LineNumber;
         public readonly int StartIndex;
         public readonly int InclusiveEndIndex;
 
-        public LineOfCode(LineOfCodeType type, PreprocessorExpression expression, in ReadOnlySpan<char> span, int startIndex, int inclusiveEndIndex)
+        public LineOfCode(LineOfCodeType type, PreprocessorExpression expression, in ReadOnlySpan<char> span, int lineCount, int startIndex, int inclusiveEndIndex)
         {
             Type = type.MustBeValidEnumValue(nameof(type));
             if (type == LineOfCodeType.IfDirective ||
@@ -21,6 +22,7 @@ namespace Light.Undefine
 
             Expression = expression;
             Span = span;
+            LineNumber = lineCount.MustBeGreaterThan(0, nameof(lineCount));
             StartIndex = startIndex.MustBeGreaterThanOrEqualTo(0,  nameof(startIndex));
             InclusiveEndIndex = inclusiveEndIndex.MustBeGreaterThanOrEqualTo(startIndex, nameof(inclusiveEndIndex));
         }

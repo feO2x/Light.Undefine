@@ -2,7 +2,7 @@
 
 namespace Light.Undefine.ExpressionParsing
 {
-    public class InvalidPreprocessorExpressionException : InvalidPreprocessorDirectiveExpression
+    public class InvalidPreprocessorExpressionException : InvalidPreprocessorDirectiveException
     {
         public InvalidPreprocessorExpressionException(string message) : base(message) { }
 
