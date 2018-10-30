@@ -1,11 +1,11 @@
 ﻿namespace Light.Undefine
 {
-    public enum CodeLineType
+    public enum LineOfCodeType
     {
         SourceCode,
         IfDirective,
         ElseIfDirective,
         ElseDirective,
-        EndDirective
+        EndIfDirective
     }
 }
