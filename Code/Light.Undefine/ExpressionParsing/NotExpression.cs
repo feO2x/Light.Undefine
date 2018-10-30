@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Light.GuardClauses;
 
-namespace Light.Undefine
+namespace Light.Undefine.ExpressionParsing
 {
     public sealed class NotExpression : PreprocessorExpression
     {

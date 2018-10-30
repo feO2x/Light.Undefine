@@ -2,6 +2,7 @@
 using FluentAssertions;
 using FluentAssertions.Specialized;
 using Light.GuardClauses;
+using Light.Undefine.ExpressionParsing;
 using Xunit;
 using Xunit.Abstractions;
 

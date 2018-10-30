@@ -2,7 +2,7 @@
 using System.Linq;
 using Light.GuardClauses;
 
-namespace Light.Undefine
+namespace Light.Undefine.ExpressionParsing
 {
     public sealed class SymbolExpression : PreprocessorExpression
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Light.Undefine
+namespace Light.Undefine.ExpressionParsing
 {
     public static class PreprocessorExpressionParser
     {
@@ -20,7 +20,7 @@ namespace Light.Undefine
                 if (tokens.Count == 1)
                 {
                     var token = tokens[0];
-                    if (token.Type != PreprocessorTokenType.Symbol)
+                    if (token.Type != PreprocessorExpressionTokenType.Symbol)
                         ThrowInvalidExpression(expression);
                     return new SymbolExpression(token.SymbolText);
                 }
@@ -29,7 +29,7 @@ namespace Light.Undefine
                 {
                     var first = tokens[0];
                     var second = tokens[1];
-                    if (first.Type != PreprocessorTokenType.NotOperator || second.Type != PreprocessorTokenType.Symbol)
+                    if (first.Type != PreprocessorExpressionTokenType.NotOperator || second.Type != PreprocessorExpressionTokenType.Symbol)
                         ThrowInvalidExpression(expression);
                     return new NotExpression(new SymbolExpression(second.SymbolText));
                 }
@@ -39,18 +39,18 @@ namespace Light.Undefine
                 var middle = tokens[1];
                 var right = tokens[2];
 
-                if (left.Type == PreprocessorTokenType.Symbol &&
-                    (middle.Type == PreprocessorTokenType.OrOperator || middle.Type == PreprocessorTokenType.AndOperator) &&
-                    right.Type == PreprocessorTokenType.Symbol)
+                if (left.Type == PreprocessorExpressionTokenType.Symbol &&
+                    (middle.Type == PreprocessorExpressionTokenType.OrOperator || middle.Type == PreprocessorExpressionTokenType.AndOperator) &&
+                    right.Type == PreprocessorExpressionTokenType.Symbol)
                 {
                     var leftExpression = new SymbolExpression(left.SymbolText);
                     var rightExpression = new SymbolExpression(right.SymbolText);
-                    return middle.Type == PreprocessorTokenType.OrOperator ? (PreprocessorExpression) new OrExpression(leftExpression, rightExpression) : new AndExpression(leftExpression, rightExpression);
+                    return middle.Type == PreprocessorExpressionTokenType.OrOperator ? (PreprocessorExpression) new OrExpression(leftExpression, rightExpression) : new AndExpression(leftExpression, rightExpression);
                 }
 
-                if (left.Type == PreprocessorTokenType.OpenBracket &&
-                    middle.Type == PreprocessorTokenType.Symbol &&
-                    right.Type == PreprocessorTokenType.CloseBracket)
+                if (left.Type == PreprocessorExpressionTokenType.OpenBracket &&
+                    middle.Type == PreprocessorExpressionTokenType.Symbol &&
+                    right.Type == PreprocessorExpressionTokenType.CloseBracket)
                     return new SymbolExpression(middle.SymbolText);
 
                 ThrowInvalidExpression(expression);
@@ -63,11 +63,11 @@ namespace Light.Undefine
             if (analysisResult.TopLevelOperatorIndex == -1)
                 ThrowInvalidExpression(expression);
 
-            if (analysisResult.TopLevelOperator.Type == PreprocessorTokenType.OrOperator)
+            if (analysisResult.TopLevelOperator.Type == PreprocessorExpressionTokenType.OrOperator)
                 return new OrExpression(
                     CreateExpressionTreeRecursively(tokens.Slice(0, analysisResult.TopLevelOperatorIndex), expression),
                     CreateExpressionTreeRecursively(tokens.Slice(analysisResult.TopLevelOperatorIndex + 1), expression));
-            if (analysisResult.TopLevelOperator.Type == PreprocessorTokenType.AndOperator)
+            if (analysisResult.TopLevelOperator.Type == PreprocessorExpressionTokenType.AndOperator)
                 return new AndExpression(
                     CreateExpressionTreeRecursively(tokens.Slice(0, analysisResult.TopLevelOperatorIndex), expression),
                     CreateExpressionTreeRecursively(tokens.Slice(analysisResult.TopLevelOperatorIndex + 1), expression));

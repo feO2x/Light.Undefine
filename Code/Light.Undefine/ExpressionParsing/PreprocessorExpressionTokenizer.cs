@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Light.Undefine
+namespace Light.Undefine.ExpressionParsing
 {
     public static class PreprocessorExpressionTokenizer
     {
@@ -35,15 +35,15 @@ namespace Light.Undefine
                 {
                     var currentCharacter = _expression[_currentIndex];
                     if (currentCharacter == AndOperatorCharacter)
-                        ExpectTwoCharacterOperator(AndOperatorCharacter, PreprocessorTokenType.AndOperator);
+                        ExpectTwoCharacterOperator(AndOperatorCharacter, PreprocessorExpressionTokenType.AndOperator);
                     else if (currentCharacter == OrOperatorCharacter)
-                        ExpectTwoCharacterOperator(OrOperatorCharacter, PreprocessorTokenType.OrOperator);
+                        ExpectTwoCharacterOperator(OrOperatorCharacter, PreprocessorExpressionTokenType.OrOperator);
                     else if (currentCharacter == NotOperatorCharacter)
-                        AddSingleCharacterToken(PreprocessorTokenType.NotOperator);
+                        AddSingleCharacterToken(PreprocessorExpressionTokenType.NotOperator);
                     else if (currentCharacter == OpenBracketCharacter)
-                        AddSingleCharacterToken(PreprocessorTokenType.OpenBracket);
+                        AddSingleCharacterToken(PreprocessorExpressionTokenType.OpenBracket);
                     else if (currentCharacter == CloseBracketCharacter)
-                        AddSingleCharacterToken(PreprocessorTokenType.CloseBracket);
+                        AddSingleCharacterToken(PreprocessorExpressionTokenType.CloseBracket);
                     else if (char.IsLetter(currentCharacter) || currentCharacter == Underscore)
                         ExpectSymbol();
                 }
@@ -71,11 +71,11 @@ namespace Light.Undefine
                 }
 
                 // ReSharper disable once ImpureMethodCallOnReadonlyValueField -- ReadOnlySpan<T>.Slice is actually a pure method but ReSharper does not recognize this
-                if (!_tokenListBuilder.TryAdd(new PreprocessorExpressionToken(PreprocessorTokenType.Symbol, _expression.Slice(startIndex, _currentIndex - startIndex).ToString()), out var errorMessage))
+                if (!_tokenListBuilder.TryAdd(new PreprocessorExpressionToken(PreprocessorExpressionTokenType.Symbol, _expression.Slice(startIndex, _currentIndex - startIndex).ToString()), out var errorMessage))
                     ThrowErrorFromBuilder(_expression, errorMessage);
             }
 
-            private void ExpectTwoCharacterOperator(char operatorCharacter, PreprocessorTokenType tokenType)
+            private void ExpectTwoCharacterOperator(char operatorCharacter, PreprocessorExpressionTokenType tokenType)
             {
                 if (_expression.Length - _currentIndex - 1 < 2)
                     throw new InvalidPreprocessorExpressionException($"The expression \"{_expression.ToString()}\" contains an invalid use of the {operatorCharacter.ToOperatorSymbol()} operator at index {_currentIndex}.");
@@ -88,7 +88,7 @@ namespace Light.Undefine
                 ++_currentIndex;
             }
 
-            private void AddSingleCharacterToken(PreprocessorTokenType tokenType)
+            private void AddSingleCharacterToken(PreprocessorExpressionTokenType tokenType)
             {
                 if (!_tokenListBuilder.TryAdd(new PreprocessorExpressionToken(tokenType), out var errorMessage))
                     ThrowErrorFromBuilder(_expression, errorMessage);

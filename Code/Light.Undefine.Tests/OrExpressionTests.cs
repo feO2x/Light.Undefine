@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Light.Undefine.ExpressionParsing;
 using Xunit;
 
 namespace Light.Undefine.Tests

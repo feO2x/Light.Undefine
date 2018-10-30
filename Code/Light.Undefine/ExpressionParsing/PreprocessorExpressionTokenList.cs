@@ -5,7 +5,7 @@ using System.Text;
 using Light.GuardClauses;
 using Light.GuardClauses.FrameworkExtensions;
 
-namespace Light.Undefine
+namespace Light.Undefine.ExpressionParsing
 {
     public readonly struct PreprocessorExpressionTokenList : IReadOnlyList<PreprocessorExpressionToken>
     {
@@ -51,7 +51,7 @@ namespace Light.Undefine
             for (var i = _from; i < exclusiveTo; ++i)
             {
                 var currentToken = _internalArray[i];
-                if (currentToken.Type == PreprocessorTokenType.OpenBracket)
+                if (currentToken.Type == PreprocessorExpressionTokenType.OpenBracket)
                 {
                     ++bracketLevel;
                     if (i == _from)
@@ -59,7 +59,7 @@ namespace Light.Undefine
                     continue;
                 }
 
-                if (currentToken.Type == PreprocessorTokenType.CloseBracket)
+                if (currentToken.Type == PreprocessorExpressionTokenType.CloseBracket)
                 {
                     --bracketLevel;
                     if (i == exclusiveTo - 1)
@@ -69,7 +69,7 @@ namespace Light.Undefine
                     continue;
                 }
 
-                if (currentToken.Type == PreprocessorTokenType.Symbol ||
+                if (currentToken.Type == PreprocessorExpressionTokenType.Symbol ||
                     bracketLevel > operatorBracketLevel ||
                     bracketLevel == operatorBracketLevel && currentToken.Type <= topLevelOperator.Type)
                     continue;
@@ -168,15 +168,15 @@ namespace Light.Undefine
                     return false;
                 }
 
-                if (_previousToken.Type != PreprocessorTokenType.Symbol &&
-                    _previousToken.Type != PreprocessorTokenType.CloseBracket)
+                if (_previousToken.Type != PreprocessorExpressionTokenType.Symbol &&
+                    _previousToken.Type != PreprocessorExpressionTokenType.CloseBracket)
                 {
                     errorMessage = "The preprocessor expression is not finished.";
                     tokenList = default;
                     return false;
                 }
 
-                if (_currentIndex == 1 && _previousToken.Type != PreprocessorTokenType.Symbol)
+                if (_currentIndex == 1 && _previousToken.Type != PreprocessorExpressionTokenType.Symbol)
                 {
                     errorMessage = "An expression with a single token must always be a preprocessor symbol.";
                     tokenList = default;
@@ -191,54 +191,54 @@ namespace Light.Undefine
             private bool CheckIfTokenIsValid(in PreprocessorExpressionToken token, out string errorMessage)
             {
                 if (_previousToken == default &&
-                    token.Type != PreprocessorTokenType.OpenBracket &&
-                    token.Type != PreprocessorTokenType.NotOperator &&
-                    token.Type != PreprocessorTokenType.Symbol)
+                    token.Type != PreprocessorExpressionTokenType.OpenBracket &&
+                    token.Type != PreprocessorExpressionTokenType.NotOperator &&
+                    token.Type != PreprocessorExpressionTokenType.Symbol)
                 {
                     errorMessage = $"Expected symbol, open bracket, or not operator, but actually got {token}.";
                     return false;
                 }
 
-                if (_previousToken.Type == PreprocessorTokenType.Symbol &&
-                    token.Type != PreprocessorTokenType.CloseBracket &&
-                    token.Type != PreprocessorTokenType.AndOperator &&
-                    token.Type != PreprocessorTokenType.OrOperator)
+                if (_previousToken.Type == PreprocessorExpressionTokenType.Symbol &&
+                    token.Type != PreprocessorExpressionTokenType.CloseBracket &&
+                    token.Type != PreprocessorExpressionTokenType.AndOperator &&
+                    token.Type != PreprocessorExpressionTokenType.OrOperator)
                 {
                     errorMessage = $"Expected Close Bracket, And operator, or Or operator after {_previousToken}, but actually got {token}";
                     return false;
                 }
 
-                if (_previousToken.Type == PreprocessorTokenType.NotOperator &&
-                    token.Type != PreprocessorTokenType.OpenBracket &&
-                    token.Type != PreprocessorTokenType.Symbol)
+                if (_previousToken.Type == PreprocessorExpressionTokenType.NotOperator &&
+                    token.Type != PreprocessorExpressionTokenType.OpenBracket &&
+                    token.Type != PreprocessorExpressionTokenType.Symbol)
                 {
                     errorMessage = $"Expected Symbol or Open Bracket after {_previousToken}, but actually got {token}.";
                     return false;
                 }
 
-                if (_previousToken.Type == PreprocessorTokenType.OpenBracket &&
-                    token.Type != PreprocessorTokenType.Symbol &&
-                    token.Type != PreprocessorTokenType.NotOperator &&
-                    token.Type != PreprocessorTokenType.OpenBracket)
+                if (_previousToken.Type == PreprocessorExpressionTokenType.OpenBracket &&
+                    token.Type != PreprocessorExpressionTokenType.Symbol &&
+                    token.Type != PreprocessorExpressionTokenType.NotOperator &&
+                    token.Type != PreprocessorExpressionTokenType.OpenBracket)
                 {
                     errorMessage = $"Expected Symbol, or Not Operator, or Open Bracket after {_previousToken}, but actually got {token}.";
                     return false;
                 }
 
-                if (_previousToken.Type == PreprocessorTokenType.CloseBracket &&
-                    token.Type != PreprocessorTokenType.OrOperator &&
-                    token.Type != PreprocessorTokenType.AndOperator &&
-                    token.Type != PreprocessorTokenType.CloseBracket)
+                if (_previousToken.Type == PreprocessorExpressionTokenType.CloseBracket &&
+                    token.Type != PreprocessorExpressionTokenType.OrOperator &&
+                    token.Type != PreprocessorExpressionTokenType.AndOperator &&
+                    token.Type != PreprocessorExpressionTokenType.CloseBracket)
                 {
                     errorMessage = $"Expected Or Operator, or And Operator, or Close Bracket after {_previousToken}, but actually got {token}.";
                     return false;
                 }
 
-                if ((_previousToken.Type == PreprocessorTokenType.AndOperator ||
-                     _previousToken.Type == PreprocessorTokenType.OrOperator) &&
-                    token.Type != PreprocessorTokenType.Symbol &&
-                    token.Type != PreprocessorTokenType.OpenBracket &&
-                    token.Type != PreprocessorTokenType.NotOperator)
+                if ((_previousToken.Type == PreprocessorExpressionTokenType.AndOperator ||
+                     _previousToken.Type == PreprocessorExpressionTokenType.OrOperator) &&
+                    token.Type != PreprocessorExpressionTokenType.Symbol &&
+                    token.Type != PreprocessorExpressionTokenType.OpenBracket &&
+                    token.Type != PreprocessorExpressionTokenType.NotOperator)
                 {
                     errorMessage = $"Expected Symbol, or Open Bracket, or Not Operator after {_previousToken}, but actually got {token}.";
                     return false;
@@ -250,10 +250,10 @@ namespace Light.Undefine
 
             private bool CheckBracketBalance(in PreprocessorExpressionToken token, out string errorMessage)
             {
-                if (token.Type == PreprocessorTokenType.OpenBracket)
+                if (token.Type == PreprocessorExpressionTokenType.OpenBracket)
                     ++_bracketBalance;
 
-                else if (token.Type == PreprocessorTokenType.CloseBracket)
+                else if (token.Type == PreprocessorExpressionTokenType.CloseBracket)
                 {
                     if (--_bracketBalance < 0)
                     {

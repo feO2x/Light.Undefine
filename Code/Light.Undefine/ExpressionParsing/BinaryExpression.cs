@@ -1,6 +1,6 @@
 ﻿using Light.GuardClauses;
 
-namespace Light.Undefine
+namespace Light.Undefine.ExpressionParsing
 {
     public abstract class BinaryExpression : PreprocessorExpression
     {

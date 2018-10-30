@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace Light.Undefine
+namespace Light.Undefine.ExpressionParsing
 {
     public class InvalidPreprocessorExpressionException : InvalidPreprocessorDirectiveExpression
     {

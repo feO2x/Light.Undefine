@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Light.Undefine
+namespace Light.Undefine.ExpressionParsing
 {
     public abstract class PreprocessorExpression
     {
