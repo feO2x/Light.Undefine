@@ -7,38 +7,38 @@ using Light.GuardClauses.FrameworkExtensions;
 
 namespace Light.Undefine
 {
-    public readonly struct PreprocessorTokenList : IReadOnlyList<PreprocessorToken>
+    public readonly struct PreprocessorExpressionTokenList : IReadOnlyList<PreprocessorExpressionToken>
     {
-        private readonly PreprocessorToken[] _internalArray;
+        private readonly PreprocessorExpressionToken[] _internalArray;
         public readonly int Count;
         private readonly int _from;
 
-        private PreprocessorTokenList(PreprocessorToken[] internalArray, int from, int count)
+        private PreprocessorExpressionTokenList(PreprocessorExpressionToken[] internalArray, int from, int count)
         {
             _internalArray = internalArray;
             _from = from;
             Count = count;
         }
 
-        public PreprocessorTokenList Slice(int from)
+        public PreprocessorExpressionTokenList Slice(int from)
         {
             from.MustBeGreaterThanOrEqualTo(0, nameof(from)).MustBeLessThan(Count, nameof(from));
-            return new PreprocessorTokenList(_internalArray, from + _from, Count - from);
+            return new PreprocessorExpressionTokenList(_internalArray, from + _from, Count - from);
         }
 
-        public PreprocessorTokenList Slice(int from, int exclusiveTo)
+        public PreprocessorExpressionTokenList Slice(int from, int exclusiveTo)
         {
             from.MustBeGreaterThanOrEqualTo(0, nameof(from)).MustBeLessThan(Count, nameof(from));
             exclusiveTo.MustBeLessThanOrEqualTo(Count, nameof(exclusiveTo));
 
-            return new PreprocessorTokenList(_internalArray, from + _from, exclusiveTo - from);
+            return new PreprocessorExpressionTokenList(_internalArray, from + _from, exclusiveTo - from);
         }
 
         public Enumerator GetEnumerator() => new Enumerator(_internalArray, _from, Count);
 
         public OperatorAnalysisResult AnalyzeComplexExpression()
         {
-            var topLevelOperator = default(PreprocessorToken);
+            var topLevelOperator = default(PreprocessorExpressionToken);
             var operatorIndex = -1;
             var operatorBracketLevel = int.MaxValue;
             
@@ -84,11 +84,11 @@ namespace Light.Undefine
 
         public readonly struct OperatorAnalysisResult
         {
-            public readonly PreprocessorToken TopLevelOperator;
+            public readonly PreprocessorExpressionToken TopLevelOperator;
             public readonly int TopLevelOperatorIndex;
             public readonly bool CanOuterBracketsBeIgnored;
 
-            public OperatorAnalysisResult(PreprocessorToken topLevelOperator, int topLevelOperatorIndex, bool canOuterBracketsBeIgnored)
+            public OperatorAnalysisResult(PreprocessorExpressionToken topLevelOperator, int topLevelOperatorIndex, bool canOuterBracketsBeIgnored)
             {
                 TopLevelOperator = topLevelOperator;
                 TopLevelOperatorIndex = topLevelOperatorIndex;
@@ -96,13 +96,13 @@ namespace Light.Undefine
             }
         }
 
-        IEnumerator<PreprocessorToken> IEnumerable<PreprocessorToken>.GetEnumerator() => GetEnumerator();
+        IEnumerator<PreprocessorExpressionToken> IEnumerable<PreprocessorExpressionToken>.GetEnumerator() => GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        int IReadOnlyCollection<PreprocessorToken>.Count => Count;
+        int IReadOnlyCollection<PreprocessorExpressionToken>.Count => Count;
 
-        public PreprocessorToken this[int index]
+        public PreprocessorExpressionToken this[int index]
         {
             get
             {
@@ -116,19 +116,19 @@ namespace Light.Undefine
 
         public sealed class Builder
         {
-            private readonly PreprocessorToken[] _internalArray;
+            private readonly PreprocessorExpressionToken[] _internalArray;
             private int _currentIndex;
-            private PreprocessorToken _previousToken;
+            private PreprocessorExpressionToken _previousToken;
             private int _bracketBalance;
 
-            public Builder(PreprocessorToken[] internalArray)
+            public Builder(PreprocessorExpressionToken[] internalArray)
             {
                 _internalArray = internalArray.MustNotBeNullOrEmpty(nameof(internalArray));
                 _currentIndex = 0;
                 _previousToken = default;
             }
 
-            public static Builder CreateDefault() => new Builder(new PreprocessorToken[32]);
+            public static Builder CreateDefault() => new Builder(new PreprocessorExpressionToken[32]);
 
             public void Reset()
             {
@@ -139,7 +139,7 @@ namespace Light.Undefine
                 _bracketBalance = 0;
             }
 
-            public bool TryAdd(PreprocessorToken token, out string errorMessage)
+            public bool TryAdd(PreprocessorExpressionToken token, out string errorMessage)
             {
                 token.MustNotBeDefault(nameof(token));
                 Check.InvalidOperation(_currentIndex == _internalArray.Length, "The capacity of the internal array is reached. Please use a larger array.");
@@ -152,7 +152,7 @@ namespace Light.Undefine
                 return true;
             }
 
-            public bool TryBuild(out PreprocessorTokenList tokenList, out string errorMessage)
+            public bool TryBuild(out PreprocessorExpressionTokenList tokenList, out string errorMessage)
             {
                 if (_currentIndex == 0)
                 {
@@ -183,12 +183,12 @@ namespace Light.Undefine
                     return false;
                 }
 
-                tokenList = new PreprocessorTokenList(_internalArray, 0, _currentIndex);
+                tokenList = new PreprocessorExpressionTokenList(_internalArray, 0, _currentIndex);
                 errorMessage = null;
                 return true;
             }
 
-            private bool CheckIfTokenIsValid(in PreprocessorToken token, out string errorMessage)
+            private bool CheckIfTokenIsValid(in PreprocessorExpressionToken token, out string errorMessage)
             {
                 if (_previousToken == default &&
                     token.Type != PreprocessorTokenType.OpenBracket &&
@@ -248,7 +248,7 @@ namespace Light.Undefine
                 return true;
             }
 
-            private bool CheckBracketBalance(in PreprocessorToken token, out string errorMessage)
+            private bool CheckBracketBalance(in PreprocessorExpressionToken token, out string errorMessage)
             {
                 if (token.Type == PreprocessorTokenType.OpenBracket)
                     ++_bracketBalance;
@@ -267,14 +267,14 @@ namespace Light.Undefine
             }
         }
 
-        public struct Enumerator : IEnumerator<PreprocessorToken>
+        public struct Enumerator : IEnumerator<PreprocessorExpressionToken>
         {
-            private readonly PreprocessorToken[] _internalArray;
+            private readonly PreprocessorExpressionToken[] _internalArray;
             private readonly int _from;
             private readonly int _exclusiveTo;
             private int _currentIndex;
 
-            public Enumerator(PreprocessorToken[] internalArray, int from, int count)
+            public Enumerator(PreprocessorExpressionToken[] internalArray, int from, int count)
             {
                 _internalArray = internalArray;
                 _from = from;
@@ -298,7 +298,7 @@ namespace Light.Undefine
                 Current = default;
             }
 
-            public PreprocessorToken Current { get; private set; }
+            public PreprocessorExpressionToken Current { get; private set; }
 
             object IEnumerator.Current => Current;
 

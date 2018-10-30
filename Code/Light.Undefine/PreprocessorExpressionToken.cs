@@ -4,12 +4,12 @@ using Light.GuardClauses;
 
 namespace Light.Undefine
 {
-    public readonly struct PreprocessorToken : IEquatable<PreprocessorToken>
+    public readonly struct PreprocessorExpressionToken : IEquatable<PreprocessorExpressionToken>
     {
         public readonly PreprocessorTokenType Type;
         public readonly string SymbolText;
 
-        public PreprocessorToken(PreprocessorTokenType type, string symbolText = null)
+        public PreprocessorExpressionToken(PreprocessorTokenType type, string symbolText = null)
         {
             Type = type;
             if (type == PreprocessorTokenType.Symbol)
@@ -18,10 +18,10 @@ namespace Light.Undefine
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Equals(PreprocessorToken other) => 
+        public bool Equals(PreprocessorExpressionToken other) => 
             other.Type == Type && (Type != PreprocessorTokenType.Symbol || SymbolText.Equals(other.SymbolText));
 
-        public override bool Equals(object other) => other is PreprocessorToken token && Equals(token);
+        public override bool Equals(object other) => other is PreprocessorExpressionToken token && Equals(token);
 
         public override int GetHashCode()
         {
@@ -32,9 +32,9 @@ namespace Light.Undefine
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator ==(PreprocessorToken x, PreprocessorToken y) => x.Equals(y);
+        public static bool operator ==(PreprocessorExpressionToken x, PreprocessorExpressionToken y) => x.Equals(y);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator !=(PreprocessorToken x, PreprocessorToken y) => !x.Equals(y);
+        public static bool operator !=(PreprocessorExpressionToken x, PreprocessorExpressionToken y) => !x.Equals(y);
 
         public override string ToString() => Type != PreprocessorTokenType.Symbol ? Type.GetStringRepresentationOfOperatorOrBracket() : SymbolText;
     }

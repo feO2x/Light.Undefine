@@ -11,7 +11,7 @@ namespace Light.Undefine
         private const char CloseBracketCharacter = ')';
         private const char Underscore = '_';
 
-        public static PreprocessorTokenList CreateTokens(in ReadOnlySpan<char> expression, PreprocessorTokenList.Builder tokenListBuilder) =>
+        public static PreprocessorExpressionTokenList CreateTokens(in ReadOnlySpan<char> expression, PreprocessorExpressionTokenList.Builder tokenListBuilder) =>
             new InternalTokenizer(expression, tokenListBuilder).CreateTokens();
 
         private static string ToOperatorSymbol(this char character) => new string(character, 2);
@@ -19,17 +19,17 @@ namespace Light.Undefine
         private ref struct InternalTokenizer
         {
             private readonly ReadOnlySpan<char> _expression;
-            private readonly PreprocessorTokenList.Builder _tokenListBuilder;
+            private readonly PreprocessorExpressionTokenList.Builder _tokenListBuilder;
             private int _currentIndex;
 
-            public InternalTokenizer(ReadOnlySpan<char> expression, PreprocessorTokenList.Builder tokenListBuilder)
+            public InternalTokenizer(ReadOnlySpan<char> expression, PreprocessorExpressionTokenList.Builder tokenListBuilder)
             {
                 _tokenListBuilder = tokenListBuilder;
                 _expression = expression;
                 _currentIndex = 0;
             }
 
-            public PreprocessorTokenList CreateTokens()
+            public PreprocessorExpressionTokenList CreateTokens()
             {
                 while (AdvanceToNextNonWhiteSpaceCharacter())
                 {
@@ -70,7 +70,7 @@ namespace Light.Undefine
                     throw new InvalidPreprocessorExpressionException($"The expression \"{_expression.ToString()}\" contains an invalid Symbol character at position {_currentIndex}.");
                 }
 
-                if (!_tokenListBuilder.TryAdd(new PreprocessorToken(PreprocessorTokenType.Symbol, _expression.Slice(startIndex, _currentIndex - startIndex).ToString()), out var errorMessage))
+                if (!_tokenListBuilder.TryAdd(new PreprocessorExpressionToken(PreprocessorTokenType.Symbol, _expression.Slice(startIndex, _currentIndex - startIndex).ToString()), out var errorMessage))
                     ThrowErrorFromBuilder(_expression, errorMessage);
             }
 
@@ -82,14 +82,14 @@ namespace Light.Undefine
                 if (_expression[++_currentIndex] != operatorCharacter)
                     throw new InvalidPreprocessorExpressionException($"The expression \"{_expression.ToString()}\" contains no second operator symbol for {operatorCharacter.ToOperatorSymbol()} at index {_currentIndex}.");
 
-                if (!_tokenListBuilder.TryAdd(new PreprocessorToken(tokenType), out var errorMessage))
+                if (!_tokenListBuilder.TryAdd(new PreprocessorExpressionToken(tokenType), out var errorMessage))
                     ThrowErrorFromBuilder(_expression, errorMessage);
                 ++_currentIndex;
             }
 
             private void AddSingleCharacterToken(PreprocessorTokenType tokenType)
             {
-                if (!_tokenListBuilder.TryAdd(new PreprocessorToken(tokenType), out var errorMessage))
+                if (!_tokenListBuilder.TryAdd(new PreprocessorExpressionToken(tokenType), out var errorMessage))
                     ThrowErrorFromBuilder(_expression, errorMessage);
                 ++_currentIndex;
             }

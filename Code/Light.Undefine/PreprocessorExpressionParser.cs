@@ -4,16 +4,16 @@ namespace Light.Undefine
 {
     public static class PreprocessorExpressionParser
     {
-        public static PreprocessorExpression Parse(string expression, PreprocessorTokenList.Builder tokenListBuilder = null) => Parse(expression.AsSpan());
+        public static PreprocessorExpression Parse(string expression, PreprocessorExpressionTokenList.Builder tokenListBuilder = null) => Parse(expression.AsSpan());
 
-        public static PreprocessorExpression Parse(in ReadOnlySpan<char> expression, PreprocessorTokenList.Builder tokenListBuilder = null)
+        public static PreprocessorExpression Parse(in ReadOnlySpan<char> expression, PreprocessorExpressionTokenList.Builder tokenListBuilder = null)
         {
-            tokenListBuilder = tokenListBuilder ?? PreprocessorTokenList.Builder.CreateDefault();
+            tokenListBuilder = tokenListBuilder ?? PreprocessorExpressionTokenList.Builder.CreateDefault();
             var tokens = PreprocessorExpressionTokenizer.CreateTokens(expression, tokenListBuilder);
             return CreateExpressionTreeRecursively(tokens, expression);
         }
 
-        private static PreprocessorExpression CreateExpressionTreeRecursively(in PreprocessorTokenList tokens, in ReadOnlySpan<char> expression)
+        private static PreprocessorExpression CreateExpressionTreeRecursively(in PreprocessorExpressionTokenList tokens, in ReadOnlySpan<char> expression)
         {
             if (tokens.Count < 4)
             {

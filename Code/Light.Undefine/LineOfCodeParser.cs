@@ -8,14 +8,14 @@ namespace Light.Undefine
     public ref struct LineOfCodeParser
     {
         public readonly ReadOnlySpan<char> SourceCode;
-        public readonly PreprocessorTokenList.Builder TokenListBuilder;
+        public readonly PreprocessorExpressionTokenList.Builder TokenListBuilder;
         private int _currentIndex;
         private int _lineCount;
 
-        public LineOfCodeParser(ReadOnlySpan<char> sourceCode, PreprocessorTokenList.Builder tokenListBuilder = null)
+        public LineOfCodeParser(ReadOnlySpan<char> sourceCode, PreprocessorExpressionTokenList.Builder tokenListBuilder = null)
         {
             SourceCode = sourceCode;
-            TokenListBuilder = tokenListBuilder ?? PreprocessorTokenList.Builder.CreateDefault();
+            TokenListBuilder = tokenListBuilder ?? PreprocessorExpressionTokenList.Builder.CreateDefault();
             _currentIndex = _lineCount = 0;
         }
 
