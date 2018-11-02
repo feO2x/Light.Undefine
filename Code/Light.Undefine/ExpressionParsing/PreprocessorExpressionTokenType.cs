@@ -7,11 +7,34 @@ namespace Light.Undefine.ExpressionParsing
     /// </summary>
     public enum PreprocessorExpressionTokenType
     {
+        /// <summary>
+        /// Indicates that a token represents a symbol.
+        /// </summary>
         Symbol = 1,
+
+        /// <summary>
+        /// Indicates that a token represents a NOT operator.
+        /// </summary>
         NotOperator,
+
+        /// <summary>
+        /// Indicates that a token represents an AND operator.
+        /// </summary>
         AndOperator,
+
+        /// <summary>
+        /// Indicates that a token represents an OR operator.
+        /// </summary>
         OrOperator,
+
+        /// <summary>
+        /// Indicates that a token represents an Open Bracket.
+        /// </summary>
         OpenBracket,
+
+        /// <summary>
+        /// Indicates that a token represents a Close Bracket.
+        /// </summary>
         CloseBracket
     }
 
