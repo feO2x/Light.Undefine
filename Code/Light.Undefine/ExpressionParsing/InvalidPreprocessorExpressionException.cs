@@ -13,6 +13,7 @@ namespace Light.Undefine.ExpressionParsing
         /// <param name="message">The message of this exception.</param>
         public InvalidPreprocessorExpressionException(string message) : base(message) { }
 
+        /// <inheritdoc />
         protected InvalidPreprocessorExpressionException(SerializationInfo info, StreamingContext context) : base(info, context) { }
     }
 }
