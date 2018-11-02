@@ -7,12 +7,10 @@ namespace Light.Undefine.Tests
 {
     public static class UndefineTransformationTests
     {
-        private static readonly UndefineTransformation TestTarget = new UndefineTransformation();
-
         [Theory]
         [MemberData(nameof(UndefineData))]
         public static void Undefine(string validSourceCode, IEnumerable<string> definedSymbols, string expectedResult) =>
-            TestTarget.Undefine(validSourceCode, definedSymbols).ToString().Should().Be(expectedResult);
+            new UndefineTransformation().Undefine(validSourceCode, definedSymbols).ToString().Should().Be(expectedResult);
 
         public static readonly TheoryData<string, IEnumerable<string>, string> UndefineData =
             new TheoryData<string, IEnumerable<string>, string>
@@ -64,7 +62,51 @@ using Light.GuardClauses.FrameworkExtensions;
 #endif",
                     new[] { "NETSTANDARD1_0" },
                     "            var fields = typeof(T).GetTypeInfo().DeclaredFields.AsArray();".AppendNewLine()
-                }
+                },
+
+                // ReSharper disable CommentTypo
+                // ReSharper disable StringLiteralTypo
+
+                // If-elif-else directive, if wins
+                {
+                    @"#if NET45 || NETSTANDARD2_0
+            typeof(T).GetCustomAttribute(Types.FlagsAttributeType) != null;
+#elif NETSTANDARD1_0
+            typeof(T).GetTypeInfo().GetCustomAttribute(Types.FlagsAttributeType) != null;
+#else
+            typeof(T).GetCustomAttributes(Types.FlagsAttributeType, false).FirstOrDefault() != null;
+#endif",
+                    new[] { "NETSTANDARD2_0" },
+                    "            typeof(T).GetCustomAttribute(Types.FlagsAttributeType) != null;".AppendNewLine()
+                },
+
+                // If-elif-else directive, elif wins
+                {
+                    @"#if NET45 || NETSTANDARD2_0
+            typeof(T).GetCustomAttribute(Types.FlagsAttributeType) != null;
+#elif NETSTANDARD1_0
+            typeof(T).GetTypeInfo().GetCustomAttribute(Types.FlagsAttributeType) != null;
+#else
+            typeof(T).GetCustomAttributes(Types.FlagsAttributeType, false).FirstOrDefault() != null;
+#endif",
+                    new[] { "NETSTANDARD1_0" },
+                    "            typeof(T).GetTypeInfo().GetCustomAttribute(Types.FlagsAttributeType) != null;".AppendNewLine()
+                },
+
+                // If-elif-else directive, else wins
+                {
+                    @"#if NET45 || NETSTANDARD2_0
+            typeof(T).GetCustomAttribute(Types.FlagsAttributeType) != null;
+#elif NETSTANDARD1_0
+            typeof(T).GetTypeInfo().GetCustomAttribute(Types.FlagsAttributeType) != null;
+#else
+            typeof(T).GetCustomAttributes(Types.FlagsAttributeType, false).FirstOrDefault() != null;
+#endif",
+                    new[] { "SOMETHING_ELSE" },
+                    "            typeof(T).GetCustomAttributes(Types.FlagsAttributeType, false).FirstOrDefault() != null;".AppendNewLine()
+                },
+                // ReSharper restore CommentTypo
+                // ReSharper restore StringLiteralTypo
             };
 
         private static string AppendNewLine(this string input) => input + Environment.NewLine;

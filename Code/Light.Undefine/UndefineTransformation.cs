@@ -26,7 +26,6 @@ namespace Light.Undefine
 
             var sink = new SourceCodeSink(new char[sourceCode.Length]);
             UndefineRecursively(sourceCode, definedPreprocessorSymbols, ref sink);
-            _tokenListBuilder.Reset();
             return sink.ToMemory();
         }
 

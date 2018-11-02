@@ -13,7 +13,7 @@ namespace Light.Undefine
         private int _currentIndex;
         private int _currentLineNumber;
 
-        public LineOfCodeParser(ReadOnlySpan<char> sourceCode, PreprocessorExpressionTokenList.Builder tokenListBuilder = null)
+        public LineOfCodeParser(in ReadOnlySpan<char> sourceCode, PreprocessorExpressionTokenList.Builder tokenListBuilder = null)
         {
             SourceCode = sourceCode;
             TokenListBuilder = tokenListBuilder ?? PreprocessorExpressionTokenList.Builder.CreateDefault();
@@ -90,12 +90,17 @@ namespace Light.Undefine
                 !AdvanceCurrentIndex())
                 ThrowInvalidDirective(startIndex);
 
+            return CreateLineOfCodeWithExpression(LineOfCodeType.IfDirective, startIndex, out lineOfCode);
+        }
+
+        private bool CreateLineOfCodeWithExpression(LineOfCodeType lineOfCodeType, int startIndex, out LineOfCode lineOfCode)
+        {
             var expressionStartIndex = GetExpressionStartIndex(startIndex);
 
             AdvanceToEndOfLineOrEndOfSpan();
 
-            var expression = PreprocessorExpressionParser.Parse(SourceCode.Slice(expressionStartIndex, CalculateSubSpanLength(expressionStartIndex)), TokenListBuilder);
-            lineOfCode = CreateLineOfCode(LineOfCodeType.IfDirective, startIndex, expression);
+            var expression = PreprocessorExpressionParser.Parse(SourceCode.Slice(expressionStartIndex, CalculateSubSpanLength(expressionStartIndex)), TokenListBuilder.Reset());
+            lineOfCode = CreateLineOfCode(lineOfCodeType, startIndex, expression);
             return true;
         }
 
@@ -149,11 +154,7 @@ namespace Light.Undefine
                 !AdvanceCurrentIndex())
                 ThrowInvalidDirective(startIndex);
 
-            var expressionStartIndex = GetExpressionStartIndex(startIndex);
-
-            var expression = PreprocessorExpressionParser.Parse(SourceCode.Slice(expressionStartIndex, CalculateSubSpanLength(expressionStartIndex)), TokenListBuilder);
-            lineOfCode = CreateLineOfCode(LineOfCodeType.ElseIfDirective, startIndex, expression);
-            return true;
+            return CreateLineOfCodeWithExpression(LineOfCodeType.ElseIfDirective, startIndex, out lineOfCode);
         }
 
         private bool AdvanceToNextNonWhiteSpaceCharacterOnSameLine(out char currentCharacter)

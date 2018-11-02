@@ -130,13 +130,14 @@ namespace Light.Undefine.ExpressionParsing
 
             public static Builder CreateDefault() => new Builder(new PreprocessorExpressionToken[32]);
 
-            public void Reset()
+            public Builder Reset()
             {
                 for (var i = 0; i < _currentIndex; ++i)
                     _internalArray[i] = default;
                 _currentIndex = 0;
                 _previousToken = default;
                 _bracketBalance = 0;
+                return this;
             }
 
             public bool TryAdd(PreprocessorExpressionToken token, out string errorMessage)
