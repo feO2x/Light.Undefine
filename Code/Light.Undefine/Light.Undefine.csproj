@@ -12,6 +12,7 @@
     <PackageProjectUrl>https://github.com/feO2x/Light.Undefine</PackageProjectUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/feO2x/Light.Undefine/master/LICENSE</PackageLicenseUrl>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+    <PackageReleaseNotes>Initial release of Light.Undefine with the ability to remove all preprocessor directives from specified source code.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
