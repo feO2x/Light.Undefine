@@ -1,6 +1,5 @@
 ﻿using System;
 using FluentAssertions;
-using FluentAssertions.Specialized;
 using Light.GuardClauses;
 using Light.Undefine.ExpressionParsing;
 using Xunit;
@@ -207,8 +206,5 @@ namespace Light.Undefine.Tests
             public void InvalidExpressions(string invalidExpressionSource) =>
                 new Action(() => PreprocessorExpressionParser.Parse(invalidExpressionSource)).Should().Throw<InvalidPreprocessorExpressionException>().WriteExceptionTo(Output);
         }
-
-        private static void WriteExceptionTo<TException>(this ExceptionAssertions<TException> exceptionAssertion, ITestOutputHelper output) where TException : Exception =>
-            output.WriteLine(exceptionAssertion.Which.ToString());
     }
 }
