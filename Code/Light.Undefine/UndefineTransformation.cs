@@ -96,12 +96,15 @@ namespace Light.Undefine
                         lineOfCode.Expression.Evaluate(definedPreprocessorSymbols))
                     {
                         ParseEvaluatedDirective(lineOfCode, ref parser, sourceCode, definedPreprocessorSymbols, ref sink, false);
-                        continue;
+                        break;
                     }
 
                     if (lineOfCode.Type == LineOfCodeType.ElseDirective &&
                         childDirectiveLevel == 0)
+                    {
                         ParseEvaluatedDirective(lineOfCode, ref parser, sourceCode, definedPreprocessorSymbols, ref sink, true);
+                        break;
+                    }
                 }
             }
         }

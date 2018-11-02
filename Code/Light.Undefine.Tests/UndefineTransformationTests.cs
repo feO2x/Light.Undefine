@@ -234,6 +234,96 @@ namespace Light.GuardClauses.Exceptions
 }"
                 },
 
+                // Subsequent directives test 3
+                {
+                    @"        /// <summary>
+        /// Checks if the specified string is null, empty, or contains only white space.
+        /// </summary>
+        /// <param name = ""string"">The string to be checked.</param>
+        
+#if (NETSTANDARD2_0 || NETSTANDARD1_0 || NET45 || SILVERLIGHT)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
+        [ContractAnnotation(""=> false, string:notnull; => true, string:canbenull"")]
+        public static bool IsNullOrWhiteSpace(this string @string)
+#if NET35 || NET35_CF
+        {
+            if (string.IsNullOrEmpty(@string))
+                return true;
+
+            foreach (var character in @string)
+            {
+                if (!char.IsWhiteSpace(character))
+                    return false;
+            }
+
+            return true;
+        }
+#else
+        => string.IsNullOrWhiteSpace(@string);
+#endif
+        /// <summary>
+        /// Ensures that the specified string is not null, empty, or contains only white space, or otherwise throws an <see cref = ""ArgumentNullException""/>, an <see cref = ""EmptyStringException""/>, or a <see cref = ""WhiteSpaceStringException""/>.
+        /// </summary>
+        /// <param name = ""parameter"">The string to be checked.</param>
+        /// <param name = ""parameterName"">The name of the parameter (optional).</param>
+        /// <param name = ""message"">The message that will be passed to the resulting exception (optional).</param>
+        /// <exception cref = ""WhiteSpaceStringException"">Thrown when <paramref name = ""parameter""/> contains only white space.</exception>
+        /// <exception cref = ""EmptyStringException"">Thrown when <paramref name = ""parameter""/> is an empty string.</exception>
+        /// <exception cref = ""ArgumentNullException"">Thrown when <paramref name = ""parameter""/> is null.</exception>
+
+#if (NETSTANDARD2_0 || NETSTANDARD1_0 || NET45 || SILVERLIGHT)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
+        [ContractAnnotation(""parameter:null => halt; parameter:notnull => notnull"")]
+        public static string MustNotBeNullOrWhiteSpace(this string parameter, string parameterName = null, string message = null)
+        {
+            parameter.MustNotBeNullOrEmpty(parameterName, message);
+            foreach (var character in parameter)
+            {
+                if (!char.IsWhiteSpace(character))
+                    return parameter;
+            }
+
+            Throw.WhiteSpaceString(parameter, parameterName, message);
+            return null;
+        }",
+                    new [] { "NETSTANDARD2_0" },
+                    @"        /// <summary>
+        /// Checks if the specified string is null, empty, or contains only white space.
+        /// </summary>
+        /// <param name = ""string"">The string to be checked.</param>
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [ContractAnnotation(""=> false, string:notnull; => true, string:canbenull"")]
+        public static bool IsNullOrWhiteSpace(this string @string)
+        => string.IsNullOrWhiteSpace(@string);
+        /// <summary>
+        /// Ensures that the specified string is not null, empty, or contains only white space, or otherwise throws an <see cref = ""ArgumentNullException""/>, an <see cref = ""EmptyStringException""/>, or a <see cref = ""WhiteSpaceStringException""/>.
+        /// </summary>
+        /// <param name = ""parameter"">The string to be checked.</param>
+        /// <param name = ""parameterName"">The name of the parameter (optional).</param>
+        /// <param name = ""message"">The message that will be passed to the resulting exception (optional).</param>
+        /// <exception cref = ""WhiteSpaceStringException"">Thrown when <paramref name = ""parameter""/> contains only white space.</exception>
+        /// <exception cref = ""EmptyStringException"">Thrown when <paramref name = ""parameter""/> is an empty string.</exception>
+        /// <exception cref = ""ArgumentNullException"">Thrown when <paramref name = ""parameter""/> is null.</exception>
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [ContractAnnotation(""parameter:null => halt; parameter:notnull => notnull"")]
+        public static string MustNotBeNullOrWhiteSpace(this string parameter, string parameterName = null, string message = null)
+        {
+            parameter.MustNotBeNullOrEmpty(parameterName, message);
+            foreach (var character in parameter)
+            {
+                if (!char.IsWhiteSpace(character))
+                    return parameter;
+            }
+
+            Throw.WhiteSpaceString(parameter, parameterName, message);
+            return null;
+        }"
+                },
+
                 
 
                 // Nested directive which evaluates to true
