@@ -4,7 +4,7 @@ using Light.Undefine.ExpressionParsing;
 
 // ReSharper disable ImpureMethodCallOnReadonlyValueField - ReadOnlySpan<T>.Slice is actually a pure method but ReSharper does not recognize this
 
-namespace Light.Undefine
+namespace Light.Undefine.SourceCodeParsing
 {
     public ref struct LineOfCodeParser
     {

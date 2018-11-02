@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Light.GuardClauses;
 using Light.Undefine.ExpressionParsing;
+using Light.Undefine.SourceCodeParsing;
 
 // ReSharper disable PossibleMultipleEnumeration
 

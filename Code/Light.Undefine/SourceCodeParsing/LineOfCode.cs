@@ -2,7 +2,7 @@
 using Light.GuardClauses;
 using Light.Undefine.ExpressionParsing;
 
-namespace Light.Undefine
+namespace Light.Undefine.SourceCodeParsing
 {
     public readonly ref struct LineOfCode
     {

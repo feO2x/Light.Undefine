@@ -1,4 +1,4 @@
-﻿namespace Light.Undefine
+﻿namespace Light.Undefine.SourceCodeParsing
 {
     public enum LineOfCodeType
     {

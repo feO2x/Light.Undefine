@@ -1,7 +1,7 @@
 ﻿using System;
 using Light.GuardClauses;
 
-namespace Light.Undefine
+namespace Light.Undefine.SourceCodeParsing
 {
     internal struct SourceCodeSink
     {
