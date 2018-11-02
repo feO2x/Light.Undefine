@@ -27,7 +27,7 @@ namespace Light.Undefine.Tests
         }
 
         private static void MustBeSymbolExpression(this PreprocessorExpression expression, string symbol) =>
-            expression.MustBeOfType<SymbolExpression>().Name.Should().Be(symbol);
+            expression.MustBeOfType<SymbolExpression>().Symbol.Should().Be(symbol);
 
         private static void MustBeNotExpressionWithSymbol(this PreprocessorExpression expression, string symbol) =>
             expression.MustBeOfType<NotExpression>().Expression.MustBeSymbolExpression(symbol);

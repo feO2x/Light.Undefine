@@ -1,7 +1,13 @@
 ﻿using System;
+using Light.GuardClauses;
+
+// ReSharper disable CommentTypo
 
 namespace Light.Undefine.ExpressionParsing
 {
+    /// <summary>
+    /// Provides static methods to create a list of tokens out of a preprocessor expression.
+    /// </summary>
     public static class PreprocessorExpressionTokenizer
     {
         private const char AndOperatorCharacter = '&';
@@ -11,6 +17,14 @@ namespace Light.Undefine.ExpressionParsing
         private const char CloseBracketCharacter = ')';
         private const char Underscore = '_';
 
+        /// <summary>
+        /// Creates a token list from the specified expression.
+        /// </summary>
+        /// <param name="expression">The source code representing a preprocessor expression (without #if or #elif keywords).</param>
+        /// <param name="tokenListBuilder">The builder that is used to assemble and validate tokens of the preprocessor expression (optional).</param>
+        /// <returns>A collection containing the tokens that were parsed from the source expression.</returns>
+        /// <exception cref="InvalidPreprocessorExpressionException">Thrown when the specified <paramref name="expression"/> cannot be parsed to valid tokens.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="tokenListBuilder"/> is null.</exception>
         public static PreprocessorExpressionTokenList CreateTokens(in ReadOnlySpan<char> expression, PreprocessorExpressionTokenList.Builder tokenListBuilder) =>
             new InternalTokenizer(expression, tokenListBuilder).CreateTokens();
 
@@ -24,7 +38,7 @@ namespace Light.Undefine.ExpressionParsing
 
             public InternalTokenizer(ReadOnlySpan<char> expression, PreprocessorExpressionTokenList.Builder tokenListBuilder)
             {
-                _tokenListBuilder = tokenListBuilder;
+                _tokenListBuilder = tokenListBuilder.MustNotBeNull(nameof(tokenListBuilder));
                 _expression = expression;
                 _currentIndex = 0;
             }

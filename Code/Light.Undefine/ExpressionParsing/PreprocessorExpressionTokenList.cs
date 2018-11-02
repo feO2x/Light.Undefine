@@ -7,9 +7,15 @@ using Light.GuardClauses.FrameworkExtensions;
 
 namespace Light.Undefine.ExpressionParsing
 {
+    /// <summary>
+    /// Represents a light-weight collection that holds preprocessor expression tokens.
+    /// </summary>
     public readonly struct PreprocessorExpressionTokenList : IReadOnlyList<PreprocessorExpressionToken>
     {
         private readonly PreprocessorExpressionToken[] _internalArray;
+        /// <summary>
+        /// Gets the number of tokens in this collection.
+        /// </summary>
         public readonly int Count;
         private readonly int _from;
 
@@ -20,22 +26,40 @@ namespace Light.Undefine.ExpressionParsing
             Count = count;
         }
 
+        /// <summary>
+        /// Slices this collection from the specified index to the end into a new collection.
+        /// </summary>
+        /// <param name="from">The index that identifies the first element of the new collection.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="from"/> is less than 0, or greater or equal to <see cref="Count"/>.</exception>
         public PreprocessorExpressionTokenList Slice(int from)
         {
             from.MustBeGreaterThanOrEqualTo(0, nameof(from)).MustBeLessThan(Count, nameof(from));
             return new PreprocessorExpressionTokenList(_internalArray, from + _from, Count - from);
         }
 
+        /// <summary>
+        /// Slices this collection from the specified <paramref name="from"/> index to the specified <paramref name="exclusiveTo"/> index into a new collection.
+        /// </summary>
+        /// <param name="from">The index that identifies the first element of the new collection.</param>
+        /// <param name="exclusiveTo">The exclusive index that identifies the last element in the new collection.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="from"/> is less than 0, or greater or equal to <see cref="Count"/>, or when <paramref name="exclusiveTo"/> is not greater than <paramref name="from"/>, or greater then <see cref="Count"/>.</exception>
         public PreprocessorExpressionTokenList Slice(int from, int exclusiveTo)
         {
             from.MustBeGreaterThanOrEqualTo(0, nameof(from)).MustBeLessThan(Count, nameof(from));
-            exclusiveTo.MustBeLessThanOrEqualTo(Count, nameof(exclusiveTo));
+            exclusiveTo.MustBeLessThanOrEqualTo(Count, nameof(exclusiveTo)).MustBeGreaterThan(from, nameof(exclusiveTo));
 
             return new PreprocessorExpressionTokenList(_internalArray, from + _from, exclusiveTo - from);
         }
 
+        /// <summary>
+        /// Gets the enumerator to iterate over this collection.
+        /// </summary>
         public Enumerator GetEnumerator() => new Enumerator(_internalArray, _from, Count);
 
+        /// <summary>
+        /// Analyzes the tokens in this collection and identifies the top level operator as well as its index and whether
+        /// the first and the last token represent brackets that can be ignored when parsing the tokens.
+        /// </summary>
         public OperatorAnalysisResult AnalyzeComplexExpression()
         {
             var topLevelOperator = default(PreprocessorExpressionToken);
@@ -82,12 +106,29 @@ namespace Light.Undefine.ExpressionParsing
             return new OperatorAnalysisResult(topLevelOperator, operatorIndex, isFirstTokenABracket && isLastTokenABracket && !canOuterBracketsBeIgnored);
         }
 
+        /// <summary>
+        /// Represents the analysis result of the <see cref="PreprocessorExpressionTokenList.AnalyzeComplexExpression"/> method.
+        /// </summary>
         public readonly struct OperatorAnalysisResult
         {
+            /// <summary>
+            /// Gets the token that represents the top-level operator.
+            /// </summary>
             public readonly PreprocessorExpressionToken TopLevelOperator;
+
+            /// <summary>
+            /// Gets the index of the top level operator.
+            /// </summary>
             public readonly int TopLevelOperatorIndex;
+
+            /// <summary>
+            /// Gets the value indicating whether the token list has outer brackets that can be ignored.
+            /// </summary>
             public readonly bool CanOuterBracketsBeIgnored;
 
+            /// <summary>
+            /// Initializes a new instance of <see cref="OperatorAnalysisResult"/>.
+            /// </summary>
             public OperatorAnalysisResult(PreprocessorExpressionToken topLevelOperator, int topLevelOperatorIndex, bool canOuterBracketsBeIgnored)
             {
                 TopLevelOperator = topLevelOperator;
@@ -96,12 +137,16 @@ namespace Light.Undefine.ExpressionParsing
             }
         }
 
+        /// <inheritdoc />
         IEnumerator<PreprocessorExpressionToken> IEnumerable<PreprocessorExpressionToken>.GetEnumerator() => GetEnumerator();
 
+        /// <inheritdoc />
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        /// <inheritdoc />
         int IReadOnlyCollection<PreprocessorExpressionToken>.Count => Count;
 
+        /// <inheritdoc />
         public PreprocessorExpressionToken this[int index]
         {
             get
@@ -112,8 +157,12 @@ namespace Light.Undefine.ExpressionParsing
             }
         }
 
+        /// <inheritdoc />
         public override string ToString() => new StringBuilder().AppendItems(this).ToString();
 
+        /// <summary>
+        /// Represents a builder that can be used to create <see cref="PreprocessorExpressionTokenList"/> instances.
+        /// </summary>
         public sealed class Builder
         {
             private readonly PreprocessorExpressionToken[] _internalArray;
@@ -121,6 +170,12 @@ namespace Light.Undefine.ExpressionParsing
             private PreprocessorExpressionToken _previousToken;
             private int _bracketBalance;
 
+            /// <summary>
+            /// Initializes a new instance of <see cref="Builder"/>.
+            /// </summary>
+            /// <param name="internalArray">The array that is used to store parsed tokens.</param>
+            /// <exception cref="GuardClauses.Exceptions.EmptyCollectionException">Thrown when array has a capacity of 0.</exception>
+            /// <exception cref="ArgumentNullException">Thrown when <paramref name="internalArray"/> is null.</exception>
             public Builder(PreprocessorExpressionToken[] internalArray)
             {
                 _internalArray = internalArray.MustNotBeNullOrEmpty(nameof(internalArray));
@@ -128,8 +183,14 @@ namespace Light.Undefine.ExpressionParsing
                 _previousToken = default;
             }
 
+            /// <summary>
+            /// Creates a new instance of <see cref="Builder"/> with a new default internal array with 32 slots.
+            /// </summary>
             public static Builder CreateDefault() => new Builder(new PreprocessorExpressionToken[32]);
 
+            /// <summary>
+            /// Resets the builder so that a new expression can be parsed to tokens.
+            /// </summary>
             public Builder Reset()
             {
                 for (var i = 0; i < _currentIndex; ++i)
@@ -140,6 +201,14 @@ namespace Light.Undefine.ExpressionParsing
                 return this;
             }
 
+            /// <summary>
+            /// Tries to add the specified token to the existing list of tokens.
+            /// </summary>
+            /// <param name="token">The token to be added.</param>
+            /// <param name="errorMessage">The error message is assigned when this method returns false.</param>
+            /// <returns>True when the token could successfully be added, otherwise false.</returns>
+            /// <exception cref="GuardClauses.Exceptions.ArgumentDefaultException">Thrown when an invalid token is passed in (initialized via default).</exception>
+            /// <exception cref="InvalidOperationException">Thrown when the internal array is full and additional tokens cannot be appended.</exception>
             public bool TryAdd(PreprocessorExpressionToken token, out string errorMessage)
             {
                 token.MustNotBeDefault(nameof(token));
@@ -153,6 +222,12 @@ namespace Light.Undefine.ExpressionParsing
                 return true;
             }
 
+            /// <summary>
+            /// Tries to build a <see cref="PreprocessorExpressionTokenList"/> from the given tokens.
+            /// </summary>
+            /// <param name="tokenList">The built token list will be assigned to this value when all validation checks passed successfully.</param>
+            /// <param name="errorMessage">The error message is assigned when this method returns false.</param>
+            /// <returns>True when the token list could be built successfully, else false.</returns>
             public bool TryBuild(out PreprocessorExpressionTokenList tokenList, out string errorMessage)
             {
                 if (_currentIndex == 0)
@@ -268,6 +343,9 @@ namespace Light.Undefine.ExpressionParsing
             }
         }
 
+        /// <summary>
+        /// Represents the enumerator for the <see cref="PreprocessorExpressionTokenList"/>.
+        /// </summary>
         public struct Enumerator : IEnumerator<PreprocessorExpressionToken>
         {
             private readonly PreprocessorExpressionToken[] _internalArray;
@@ -275,6 +353,9 @@ namespace Light.Undefine.ExpressionParsing
             private readonly int _exclusiveTo;
             private int _currentIndex;
 
+            /// <summary>
+            /// Initializes a new instance of <see cref="Enumerator"/>.
+            /// </summary>
             public Enumerator(PreprocessorExpressionToken[] internalArray, int from, int count)
             {
                 _internalArray = internalArray;
@@ -284,6 +365,7 @@ namespace Light.Undefine.ExpressionParsing
                 _currentIndex = from - 1;
             }
 
+            /// <inheritdoc />
             public bool MoveNext()
             {
                 if (_currentIndex + 1 >= _exclusiveTo)
@@ -293,16 +375,22 @@ namespace Light.Undefine.ExpressionParsing
                 return true;
             }
 
+            /// <inheritdoc />
             public void Reset()
             {
                 _currentIndex = _from - 1;
                 Current = default;
             }
 
+            /// <inheritdoc />
             public PreprocessorExpressionToken Current { get; private set; }
 
+            /// <inheritdoc />
             object IEnumerator.Current => Current;
 
+            /// <summary>
+            /// Does nothing because this enumerator does not need to be disposed.
+            /// </summary>
             public void Dispose() { }
         }
     }

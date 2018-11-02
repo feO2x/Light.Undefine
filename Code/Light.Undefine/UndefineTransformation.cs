@@ -9,18 +9,41 @@ using Light.Undefine.SourceCodeParsing;
 
 namespace Light.Undefine
 {
+    /// <summary>
+    /// This class is the high-level entry point of Light.Undefine. Instantiate this type and call Undefine to remove
+    /// all preprocessor directives from the specified source code. Every block of code that is within a preprocessor
+    /// directive that does not evaluate to true will also be removed.
+    ///
+    /// This class is not thread-safe.
+    /// </summary>
     public sealed class UndefineTransformation
     {
         private readonly PreprocessorExpressionTokenList.Builder _tokenListBuilder;
 
-        public UndefineTransformation(PreprocessorExpressionTokenList.Builder tokenListBuilder = null)
-        {
+        /// <summary>
+        /// Initializes a new instance of <see cref="UndefineTransformation"/>.
+        /// </summary>
+        /// <param name="tokenListBuilder">The builder that is used to assemble and validate tokens from directive expressions (optional). If you specify null here, <see cref="PreprocessorExpressionTokenList.Builder.CreateDefault"/> will be used.</param>
+        public UndefineTransformation(PreprocessorExpressionTokenList.Builder tokenListBuilder = null) => 
             _tokenListBuilder = tokenListBuilder ?? PreprocessorExpressionTokenList.Builder.CreateDefault();
-        }
 
+        /// <summary>
+        /// Removes all preprocessor directives from the specified source code. Every block of code that is within a preprocessor
+        /// directive that does not evaluate to true will also be removed.
+        /// </summary>
+        /// <param name="sourceCode">The source code whose preprocessor directives should be removed.</param>
+        /// <param name="definedPreprocessorSymbols">The preprocessor symbols that are defined for this undefine-run.</param>
+        /// <returns>The transformed source code.</returns>
         public Memory<char> Undefine(in ReadOnlySpan<char> sourceCode, params string[] definedPreprocessorSymbols) => 
             Undefine(sourceCode, (IEnumerable<string>) definedPreprocessorSymbols);
 
+        /// <summary>
+        /// Removes all preprocessor directives from the specified source code. Every block of code that is within a preprocessor
+        /// directive that does not evaluate to true will also be removed.
+        /// </summary>
+        /// <param name="sourceCode">The source code whose preprocessor directives should be removed.</param>
+        /// <param name="definedPreprocessorSymbols">The preprocessor symbols that are defined for this undefine-run.</param>
+        /// <returns>The transformed source code.</returns>
         public Memory<char> Undefine(in ReadOnlySpan<char> sourceCode, IEnumerable<string> definedPreprocessorSymbols)
         {
             definedPreprocessorSymbols.MustNotBeNull(nameof(definedPreprocessorSymbols));

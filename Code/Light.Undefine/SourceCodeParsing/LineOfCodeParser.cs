@@ -6,13 +6,28 @@ using Light.Undefine.ExpressionParsing;
 
 namespace Light.Undefine.SourceCodeParsing
 {
+    /// <summary>
+    /// Represents a parser that takes a source file and continuously parses <see cref="LineOfCode"/> instances out of it.
+    /// </summary>
     public ref struct LineOfCodeParser
     {
+        /// <summary>
+        /// Gets the underlying source code that is parsed.
+        /// </summary>
         public readonly ReadOnlySpan<char> SourceCode;
+
+        /// <summary>
+        /// Gets the builder that is used to assemble and validate tokens from preprocessor expressions.
+        /// </summary>
         public readonly PreprocessorExpressionTokenList.Builder TokenListBuilder;
         private int _currentIndex;
         private int _currentLineNumber;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="LineOfCodeParser"/>.
+        /// </summary>
+        /// <param name="sourceCode">The source code that should be parsed.</param>
+        /// <param name="tokenListBuilder">builder that is used to assemble and validate tokens from preprocessor expressions (optional).</param>
         public LineOfCodeParser(in ReadOnlySpan<char> sourceCode, PreprocessorExpressionTokenList.Builder tokenListBuilder = null)
         {
             SourceCode = sourceCode;
@@ -21,6 +36,13 @@ namespace Light.Undefine.SourceCodeParsing
             _currentIndex = -1;
         }
 
+        /// <summary>
+        /// Tries to parse the next line of code from the specified source code.
+        /// </summary>
+        /// <param name="lineOfCode">The line of code instance that was parsed.</param>
+        /// <returns>True if parsing was successful, false if no new line of code is available.</returns>
+        /// <exception cref="InvalidPreprocessorExpressionException">Thrown when a preprocessor expression of the next line of code is erroneous.</exception>
+        /// <exception cref="InvalidPreprocessorDirectiveException">Thrown when a preprocessor directive of the next line of code is erroneous.</exception>
         public bool TryParseNext(out LineOfCode lineOfCode)
         {
             var startIndex = _currentIndex + 1;

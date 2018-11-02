@@ -1,11 +1,28 @@
 ﻿using System;
 
+// ReSharper disable CommentTypo
+
 namespace Light.Undefine.ExpressionParsing
 {
+    /// <summary>
+    /// Provides static methods to parse a preprocessor expression.
+    /// </summary>
     public static class PreprocessorExpressionParser
     {
+        /// <summary>
+        /// Parses the specified source code to an preprocessor expression tree.
+        /// </summary>
+        /// <param name="expression">The source code that that should be parsed. It must only contain the expression (without #if or #elif keyword).</param>
+        /// <param name="tokenListBuilder">The builder that is used to assemble and validate tokens of the preprocessor expression (optional).</param>
+        /// <returns>The top expression of the parsed tree.</returns>
         public static PreprocessorExpression Parse(string expression, PreprocessorExpressionTokenList.Builder tokenListBuilder = null) => Parse(expression.AsSpan());
 
+        /// <summary>
+        /// Parses the specified source code to an preprocessor expression tree.
+        /// </summary>
+        /// <param name="expression">The source code that that should be parsed. It must only contain the expression (without #if or #elif keyword).</param>
+        /// <param name="tokenListBuilder">The builder that is used to assemble and validate tokens of the preprocessor expression (optional).</param>
+        /// <returns>The top expression of the parsed tree.</returns>
         public static PreprocessorExpression Parse(in ReadOnlySpan<char> expression, PreprocessorExpressionTokenList.Builder tokenListBuilder = null)
         {
             tokenListBuilder = tokenListBuilder ?? PreprocessorExpressionTokenList.Builder.CreateDefault();
