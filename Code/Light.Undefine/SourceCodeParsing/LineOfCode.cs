@@ -35,11 +35,6 @@ namespace Light.Undefine.SourceCodeParsing
         public readonly int StartIndex;
 
         /// <summary>
-        /// Gets the index of the last character of this line of code.
-        /// </summary>
-        public readonly int InclusiveEndIndex;
-
-        /// <summary>
         /// Initializes a new instance of <see cref="LineOfCode"/>.
         /// </summary>
         /// <param name="type">The type this line of code represents.</param>
@@ -48,12 +43,11 @@ namespace Light.Undefine.SourceCodeParsing
         /// <param name="span">The underlying span that contains the whole line of code.</param>
         /// <param name="lineNumber">The line number.</param>
         /// <param name="startIndex">The index of the first character.</param>
-        /// <param name="inclusiveEndIndex">The index of the last character.</param>
         /// <exception cref="GuardClauses.Exceptions.EnumValueNotDefinedException">Thrown when the specified type is no valid value of <see cref="LineOfCodeType"/>.</exception>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="type"/> is <see cref="LineOfCodeType.IfDirective"/> or <see cref="LineOfCodeType.ElseIfDirective"/> and <paramref name="expression"/> is null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="lineNumber"/> or <paramref name="startIndex"/> is equal or less than 0, or when <paramref name="inclusiveEndIndex"/> is less than <paramref name="startIndex"/>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="lineNumber"/> or <paramref name="startIndex"/> is equal or less than 0.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="type"/> is <see cref="LineOfCodeType.SourceCode"/>, or <see cref="LineOfCodeType.ElseDirective"/>, or <see cref="LineOfCodeType.EndIfDirective"/> and <paramref name="expression"/> is not null.</exception>
-        public LineOfCode(LineOfCodeType type, PreprocessorExpression expression, in ReadOnlySpan<char> span, int lineNumber, int startIndex, int inclusiveEndIndex)
+        public LineOfCode(LineOfCodeType type, PreprocessorExpression expression, in ReadOnlySpan<char> span, int lineNumber, int startIndex)
         {
             Type = type.MustBeValidEnumValue(nameof(type));
             if (type == LineOfCodeType.IfDirective ||
@@ -66,7 +60,6 @@ namespace Light.Undefine.SourceCodeParsing
             Span = span;
             LineNumber = lineNumber.MustBeGreaterThan(0, nameof(lineNumber));
             StartIndex = startIndex.MustBeGreaterThanOrEqualTo(0,  nameof(startIndex));
-            InclusiveEndIndex = inclusiveEndIndex.MustBeGreaterThanOrEqualTo(startIndex, nameof(inclusiveEndIndex));
         }
 
         /// <summary>
@@ -75,7 +68,6 @@ namespace Light.Undefine.SourceCodeParsing
         public bool Equals(LineOfCode other) => Type == other.Type &&
                                                 LineNumber == other.LineNumber &&
                                                 StartIndex == other.StartIndex &&
-                                                InclusiveEndIndex == other.InclusiveEndIndex &&
                                                 Span == other.Span;
 
         /// <summary>
