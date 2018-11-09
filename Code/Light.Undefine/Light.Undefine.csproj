@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.1.1</Version>
+    <Version>0.2.0</Version>
     <Description>A C# source code transformation that eliminates #if preprocessor directives.</Description>
     <LangVersion>7.3</LangVersion>
     <Authors>Kenny Pflug</Authors>
@@ -14,7 +14,11 @@
     <PackageLicenseUrl>https://raw.githubusercontent.com/feO2x/Light.Undefine/master/LICENSE</PackageLicenseUrl>
     <PackageTags>CSharp Preprocessor Directives</PackageTags>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    <PackageReleaseNotes>Fixed bug where the parser would not return to the main loop after parsing #elif and #else directives successfully.</PackageReleaseNotes>
+    <PackageReleaseNotes>Light.Undefine 0.2.0
+-----------------------------
+- Light.Undefine is now able to handle single line comments after preprocessor expressions
+- Removed DLL dependency to Light.GuardClauses
+    </PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
