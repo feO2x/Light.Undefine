@@ -16,6 +16,7 @@ namespace Light.Undefine.ExpressionParsing
         private const char OpenBracketCharacter = '(';
         private const char CloseBracketCharacter = ')';
         private const char Underscore = '_';
+        private const char SingleLineCommentCharacter = '/';
 
         /// <summary>
         /// Creates a token list from the specified expression.
@@ -60,6 +61,12 @@ namespace Light.Undefine.ExpressionParsing
                         AddSingleCharacterToken(PreprocessorExpressionTokenType.CloseBracket);
                     else if (char.IsLetter(currentCharacter) || currentCharacter == Underscore)
                         ExpectSymbol();
+                    else if (currentCharacter == SingleLineCommentCharacter &&
+                             AdvanceToNextNonWhiteSpaceCharacter() &&
+                             _expression[_currentIndex] == SingleLineCommentCharacter)
+                        break;
+                    else
+                        ThrowUnexpectedCharacter(_expression, _currentIndex);
                 }
 
                 if (!_tokenListBuilder.TryBuild(out var tokenList, out var errorMessage))
@@ -127,6 +134,9 @@ namespace Light.Undefine.ExpressionParsing
 
             private static void ThrowErrorFromBuilder(in ReadOnlySpan<char> span, string errorMessage) =>
                 throw new InvalidPreprocessorExpressionException($"The expression \"{span.ToString()}\" is erroneous. {errorMessage}");
+
+            private static void ThrowUnexpectedCharacter(in ReadOnlySpan<char> span, int index) => 
+                throw new InvalidPreprocessorExpressionException($"The expression \"{span.ToString()}\" contains an invalid character at position {index}.");
         }
     }
 }

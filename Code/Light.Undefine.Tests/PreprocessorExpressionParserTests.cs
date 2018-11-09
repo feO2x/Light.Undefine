@@ -185,6 +185,10 @@ namespace Light.Undefine.Tests
                         orExpression.Left.MustBeSymbolExpression("NETSTANDARD");
                         orExpression.Right.MustBeSymbolExpression("NET45");
                     }
+                },
+                {
+                    "NET47 // Here is a single line comment",
+                    expression => expression.MustBeSymbolExpression("NET47")
                 }
             };
 

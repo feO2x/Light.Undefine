@@ -349,6 +349,28 @@ namespace Light.GuardClauses.Exceptions
 #endif",
                     new[] { "NETSTANDARD", "NETSTANDARD1_0" },
                     "    Line 1".AppendNewLine()
+                },
+
+                // Directive with single line comment
+                {
+                    @"#if NETSTANDARD // Here is a comment
+Here is the Content
+#endif",
+                    new [] { "NETSTANDARD" },
+                    "Here is the Content".AppendNewLine()
+                },
+
+                // Nested directive with single line comment
+                {
+                    @"#if ONE
+Here is the outer content.
+#if TWO // And here is a comment
+Here is the inner content.
+#endif
+#endif",
+                    new [] { "ONE", "TWO" },
+                    @"Here is the outer content.
+Here is the inner content.".AppendNewLine()
                 }
             };
 
