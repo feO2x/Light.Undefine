@@ -23,7 +23,10 @@ namespace Light.Undefine
         /// <summary>
         /// Initializes a new instance of <see cref="UndefineTransformation"/>.
         /// </summary>
-        /// <param name="tokenListBuilder">The builder that is used to assemble and validate tokens from directive expressions (optional). If you specify null here, <see cref="PreprocessorExpressionTokenList.Builder.CreateDefault"/> will be used.</param>
+        /// <param name="tokenListBuilder">
+        /// The builder that is used to assemble and validate tokens from directive expressions (optional).
+        /// If you specify null here, <see cref="PreprocessorExpressionTokenList.Builder.CreateDefault"/> will be used.
+        /// </param>
         public UndefineTransformation(PreprocessorExpressionTokenList.Builder tokenListBuilder = null) => 
             _tokenListBuilder = tokenListBuilder ?? PreprocessorExpressionTokenList.Builder.CreateDefault();
 
@@ -84,10 +87,10 @@ namespace Light.Undefine
 
                     if (lineOfCode.Type == LineOfCodeType.EndIfDirective)
                     {
-                        if (childDirectiveLevel > 0)
-                            --childDirectiveLevel;
-                        else
+                        if (childDirectiveLevel == 0)
                             break;
+
+                        --childDirectiveLevel;
                         continue;
                     }
 
@@ -127,6 +130,9 @@ namespace Light.Undefine
 
                 if (lineOfCode.Type == LineOfCodeType.IfDirective)
                 {
+                    // This check ensures that the If directive actually is a child of the evaluated directive.
+                    // If it was child of another block (which always evaluates to false in this context),
+                    // setting containsChildDirective to true would actually be wrong.
                     if (endIndex == -1)
                         containsChildDirective = true;
                     ++childDirectiveLevel;
@@ -135,13 +141,13 @@ namespace Light.Undefine
                 if (lineOfCode.Type == LineOfCodeType.EndIfDirective)
                 {
                     if (childDirectiveLevel > 0)
-                        --childDirectiveLevel;
-                    else
                     {
-                        SetEndIndexIfPossible(lineOfCode, ref endIndex);
-                        break;
+                        --childDirectiveLevel;
+                        continue;
                     }
-                    continue;
+
+                    SetEndIndexIfPossible(lineOfCode, ref endIndex);
+                    break;
                 }
                 if (lineOfCode.Type == LineOfCodeType.ElseDirective)
                 {
@@ -176,7 +182,6 @@ namespace Light.Undefine
                 UndefineRecursively(codeInDirective, definedPreprocessorSymbols, ref sink);
             else
                 sink.Append(codeInDirective);
-
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
